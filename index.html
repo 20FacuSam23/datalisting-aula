@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#fff8ee">
+  <title>Datalisting Aula</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/aula.css">
+</head>
+<body>
+  <a class="skip" href="#contenido">Ir al contenido</a>
+  <header class="topbar">
+    <a class="brand" href="#" data-view="inicio">
+      <span class="brand-mark">D</span>
+      <span><b>Datalisting</b><small>Aula</small></span>
+    </a>
+    <nav aria-label="Navegación principal">
+      <button class="nav active" data-view="inicio">Inicio</button>
+      <button class="nav" data-view="cursos">Mis cursos</button>
+      <button class="nav" data-view="ayuda">Ayuda</button>
+    </nav>
+    <button class="profile"><span class="avatar">FS</span><span>Mi cuenta<small>Administrador</small></span></button>
+  </header>
+
+  <main id="contenido">
+    <section class="hero view" data-section="inicio">
+      <div class="hero-copy">
+        <span class="eyebrow">APRENDER A TU RITMO</span>
+        <h1>Un aula digital<br><em>simple y cercana.</em></h1>
+        <p>Clases, materiales y acompañamiento en un solo lugar. Diseñada para que aprender tecnología sea claro, cómodo y seguro.</p>
+        <div class="actions">
+          <button class="primary" data-view="cursos">Continuar aprendiendo</button>
+          <button class="secondary" data-view="ayuda">Necesito ayuda</button>
+        </div>
+        <div class="trust"><span>✓ Letras claras</span><span>✓ Pasos simples</span><span>✓ Material protegido</span></div>
+      </div>
+
+      <article class="next-card">
+        <div class="card-top"><span class="dot"></span> TU PRÓXIMA CLASE <b>03</b></div>
+        <div class="illustration"><div class="monitor"><i></i><i></i><i></i><strong>Aa</strong></div><span class="pointer">↖</span></div>
+        <small class="course-name">Computación cotidiana</small>
+        <h2>Internet con confianza</h2>
+        <p>Aprendé a navegar, reconocer sitios seguros y encontrar información.</p>
+        <div class="progress"><i style="width:42%"></i></div>
+        <div class="progress-label"><b>42% completado</b><span>25 min</span></div>
+        <button class="lesson">Continuar clase <span>→</span></button>
+      </article>
+    </section>
+
+    <section class="section view" data-section="inicio">
+      <div class="section-head">
+        <div><span class="eyebrow">TU CAMINO</span><h2>Seguí desde donde quedaste</h2></div>
+        <button class="link" data-view="cursos">Ver todos los cursos →</button>
+      </div>
+      <div class="course-grid" id="homeCourses"></div>
+    </section>
+
+    <section class="section view hidden" data-section="cursos">
+      <div class="page-head"><span class="eyebrow">MI APRENDIZAJE</span><h1>Mis cursos</h1><p>Elegí un curso para continuar. Tu avance queda guardado automáticamente.</p></div>
+      <div class="course-grid" id="allCourses"></div>
+    </section>
+
+    <section class="section view hidden" data-section="ayuda">
+      <div class="help">
+        <div><span class="eyebrow">ESTAMOS PARA ACOMPAÑARTE</span><h1>¿Necesitás ayuda?</h1><p>No hace falta saber términos técnicos. Elegí qué querés hacer y te guiamos paso a paso.</p></div>
+        <aside>
+          <b>AYUDA RÁPIDA</b>
+          <button>▶ Cómo entrar a una clase</button>
+          <button>▤ Cómo ver un material</button>
+          <button>🔒 Cómo recuperar mi acceso</button>
+          <button>💬 Contactar al docente</button>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <footer><b>Datalisting Aula</b><p>La tecnología a tu servicio, y no al revés.</p><small>Accesibilidad · Privacidad · Ayuda</small></footer>
+  <script src="assets/aula.js"></script>
+</body>
+</html>
