@@ -25,7 +25,18 @@
     </nav>
     <div class="top-actions">
       <button class="accessibility" aria-label="Opciones de lectura">Aa</button>
-      <button class="profile"><span class="avatar">FS</span><span>Facundo<small>Administrador</small></span><b>⌄</b></button>
+      <div class="account">
+        <button class="profile" id="profileButton" aria-haspopup="menu" aria-expanded="false">
+          <span class="avatar" id="profileAvatar">?</span>
+          <span><span id="profileName">Ingresar</span><small id="profileRole">Cuenta del aula</small></span>
+          <b>⌄</b>
+        </button>
+        <div class="account-menu hidden" id="accountMenu" role="menu">
+          <button type="button" id="accountProfile" role="menuitem">Mi perfil</button>
+          <button type="button" id="accountCourses" role="menuitem">Mis cursos</button>
+          <button type="button" id="accountLogout" role="menuitem" class="danger">Cerrar sesión</button>
+        </div>
+      </div>
     </div>
   </header>
 
@@ -105,7 +116,27 @@
     </section>
   </main>
 
+  <div class="auth-backdrop hidden" id="authBackdrop">
+    <section class="auth-card" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+      <button class="auth-close" id="authClose" aria-label="Cerrar">×</button>
+      <span class="eyebrow">DATALISTING AULA</span>
+      <h2 id="authTitle">Ingresar al aula</h2>
+      <p>Usá tu cuenta de Datalisting para acceder a tu perfil, cursos y progreso.</p>
+      <form id="loginForm">
+        <label>Correo
+          <input id="loginEmail" type="email" autocomplete="username" required placeholder="tu@correo.com">
+        </label>
+        <label>Contraseña
+          <input id="loginPassword" type="password" autocomplete="current-password" required placeholder="••••••••">
+        </label>
+        <p class="auth-error hidden" id="authError"></p>
+        <button class="auth-submit" type="submit">Ingresar</button>
+      </form>
+    </section>
+  </div>
+
   <footer><div class="footer-brand"><span class="brand-mark"><i></i><i></i><i></i></span><b>Datalisting Aula</b></div><p>La tecnología a tu servicio, y no al revés.</p><small>Accesibilidad · Privacidad · Ayuda</small></footer>
-  <script src="config.js"></script>\n  <script src="assets/aula.js"></script>
+  <script src="config.js"></script>
+  <script src="assets/aula.js"></script>
 </body>
 </html>
