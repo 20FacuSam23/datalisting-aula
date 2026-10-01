@@ -83,8 +83,100 @@ function renderCourses(courses) {
   document.querySelector("#homeCourses").innerHTML = list.slice(0, 3).map(card).join("");
   document.querySelector("#allCourses").innerHTML = list.map(card).join("");
 
+  document.querySelectorAll(".course[data-course-slug]").forEach(courseCard => {
+    courseCard.setAttribute("role", "button");
+    courseCard.setAttribute("tabindex", "0");
+
+    const activate = async () => {
+      try {
+        await openCourse(courseCard.dataset.courseSlug);
+      } catch (error) {
+        console.error(error);
+        alert(error.message);
+      }
+    };
+
+    courseCard.addEventListener("click", activate);
+    courseCard.addEventListener("keydown", event => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        activate();
+      }
+    });
+  });
+
   const activeCourses = document.querySelector(".hero-meta div:first-child strong");
   if (activeCourses) activeCourses.textContent = list.length;
+}
+
+function lessonTitle(lesson, index) {
+  return lesson.title || lesson.name || `Clase ${index + 1}`;
+}
+
+function lessonDescription(lesson) {
+  return lesson.description || lesson.summary || lesson.content || "Clase disponible.";
+}
+
+function renderCourseDetail(course, lessons) {
+  const list = Array.isArray(lessons) ? lessons : [];
+
+  document.querySelector("#courseDetailName").textContent = course?.name || "Curso";
+  document.querySelector("#courseDetailDescription").textContent =
+    course?.description || "Contenido del curso.";
+  document.querySelector("#courseDetailCount").textContent =
+    list.length === 1 ? "1 clase" : `${list.length} clases`;
+
+  const container = document.querySelector("#courseLessons");
+
+  if (!list.length) {
+    container.innerHTML = `
+      <article class="lesson-row empty">
+        <div class="lesson-number">—</div>
+        <div>
+          <h3>Todavía no hay clases publicadas</h3>
+          <p>Cuando el curso tenga clases disponibles, van a aparecer acá.</p>
+        </div>
+      </article>`;
+    return;
+  }
+
+  container.innerHTML = list.map((lesson, index) => `
+    <article class="lesson-row" data-lesson-id="${escapeHtml(lesson.id ?? "")}">
+      <div class="lesson-number">${String(index + 1).padStart(2, "0")}</div>
+      <div class="lesson-row-copy">
+        <small>CLASE ${String(index + 1).padStart(2, "0")}</small>
+        <h3>${escapeHtml(lessonTitle(lesson, index))}</h3>
+        <p>${escapeHtml(lessonDescription(lesson))}</p>
+      </div>
+      <button type="button" class="lesson-open">Abrir <span>→</span></button>
+    </article>`
+  ).join("");
+}
+
+async function openCourse(slug) {
+  if (!slug) return;
+
+  const response = await apiFetch(
+    `/education/${encodeURIComponent(organizationSlug)}/courses/${encodeURIComponent(slug)}`
+  );
+
+  if (response.status === 401) {
+    clearToken();
+    setAccountUI(null);
+    openAuth();
+    return;
+  }
+
+  if (!response.ok) {
+    throw new Error(`No se pudo abrir el curso (${response.status}).`);
+  }
+
+  const data = await response.json();
+  const course = data.course ?? data;
+  const lessons = data.lessons ?? course.lessons ?? [];
+
+  renderCourseDetail(course, lessons);
+  show("curso");
 }
 
 function renderCoursesError(message) {
@@ -283,6 +375,8 @@ document.querySelector("#loginForm")?.addEventListener("submit", async e => {
     submit.disabled = false;
   }
 });
+
+document.querySelector("#courseBack")?.addEventListener("click", () => show("cursos"));
 
 document.querySelector("#accountLogout")?.addEventListener("click", logout);
 
