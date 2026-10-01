@@ -45,3 +45,11 @@ main{overflow:hidden}.hero{padding:26px 24px 0}.hero-shell{max-width:1240px;min-
 .auth-submit{border:0;border-radius:14px;padding:14px 16px;background:var(--ink);color:white;font-weight:800;cursor:pointer}
 .auth-submit:disabled{opacity:.6;cursor:wait}
 .auth-error{background:#fff1f0;border:1px solid #ffd7d2;color:#9d342c;border-radius:12px;padding:10px 12px;margin:0;font-size:15px}
+
+/* El aula queda cerrada hasta autenticar al usuario */
+body.auth-locked main,
+body.auth-locked footer,
+body.auth-locked nav,
+body.auth-locked .accessibility{display:none!important}
+body.auth-locked .topbar{justify-content:space-between}
+body.auth-locked .brand{margin-right:auto}
