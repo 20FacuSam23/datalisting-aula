@@ -5,6 +5,8 @@ const tokenKey = `datalisting_aula_token_${organizationSlug}`;
 
 let currentUser = null;
 
+document.body.classList.add("auth-locked");
+
 const tones = ["warm", "blue", "green"];
 const icons = ["⌨", "◎", "▣", "✉", "☁", "✓"];
 
@@ -104,9 +106,8 @@ async function loadCourses() {
   }
 
   try {
-    const response = await fetch(
-      `${apiBaseUrl}/education/${encodeURIComponent(organizationSlug)}/courses`,
-      { headers: { Accept: "application/json" } }
+    const response = await apiFetch(
+      `/education/${encodeURIComponent(organizationSlug)}/courses`
     );
 
     if (!response.ok) {
@@ -123,6 +124,7 @@ async function loadCourses() {
 
 function setAccountUI(user) {
   currentUser = user || null;
+  document.body.classList.toggle("auth-locked", !currentUser);
 
   document.querySelector("#profileAvatar").textContent = currentUser ? initials(currentUser.name) : "?";
   document.querySelector("#profileName").textContent = currentUser?.name || "Ingresar";
@@ -180,6 +182,7 @@ async function login(email, password) {
 async function restoreSession() {
   if (!token()) {
     setAccountUI(null);
+    openAuth();
     return;
   }
 
@@ -194,9 +197,11 @@ async function restoreSession() {
 
     const data = await response.json();
     setAccountUI(data.user);
+    await loadCourses();
   } catch {
     clearToken();
     setAccountUI(null);
+    openAuth();
   }
 }
 
@@ -212,6 +217,7 @@ async function logout() {
     clearToken();
     setAccountUI(null);
     document.querySelector("#accountMenu").classList.add("hidden");
+    openAuth();
   }
 }
 
@@ -254,7 +260,8 @@ document.querySelector("#authBackdrop")?.addEventListener("click", e => {
 document.querySelector("#loginForm")?.addEventListener("submit", async e => {
   e.preventDefault();
 
-  const submit = e.currentTarget.querySelector('button[type="submit"]');
+  const form = e.currentTarget;
+  const submit = form.querySelector('button[type="submit"]');
   const errorBox = document.querySelector("#authError");
 
   submit.disabled = true;
@@ -266,8 +273,9 @@ document.querySelector("#loginForm")?.addEventListener("submit", async e => {
       document.querySelector("#loginPassword").value
     );
 
-    e.currentTarget.reset();
+    form.reset();
     closeAuth();
+    await loadCourses();
   } catch (error) {
     errorBox.textContent = error.message;
     errorBox.classList.remove("hidden");
@@ -307,4 +315,4 @@ document.querySelectorAll(".help aside button").forEach(x =>
   )
 );
 
-Promise.all([loadCourses(), restoreSession()]);
+restoreSession();
