@@ -25,3 +25,23 @@ main{overflow:hidden}.hero{padding:26px 24px 0}.hero-shell{max-width:1240px;min-
 @media(max-width:980px){.profile>span:not(.avatar),.profile>b{display:none}.hero-shell{grid-template-columns:1fr;padding:54px 38px}.visual-stage{min-height:560px}.course-grid{grid-template-columns:1fr 1fr}.help{grid-template-columns:1fr}.hero-meta{margin-top:35px}}
 @media(max-width:720px){.topbar nav{display:none}.topbar{height:70px}.accessibility{display:none}.hero{padding:12px 12px 0}.hero-shell{padding:42px 22px;border-radius:26px;min-height:auto}.hero h1{font-size:46px}.actions{flex-direction:column}.actions button{width:100%}.hero-meta{gap:18px;justify-content:space-between}.hero-meta span{font-size:10px}.visual-stage{min-height:500px}.floating-top{right:0}.floating-bottom{left:0}.course-grid{grid-template-columns:1fr}.section{padding:68px 18px}.section-head{align-items:start;gap:20px;flex-direction:column}.support-strip{align-items:flex-start}.support-strip button{display:none}.page-head h1,.help h1{font-size:45px}footer{align-items:flex-start;flex-direction:column;gap:8px}}
 @media(max-width:440px){.hero h1{font-size:39px}.hero-copy>p{font-size:18px}.hero-meta strong{font-size:19px}.visual-stage{min-height:460px}.next-card{transform:none}.lesson-cover{height:175px}.browser-art{width:200px;height:120px}.floating-top,.floating-bottom{display:none}}
+
+
+/* Cuenta y autenticación */
+.account{position:relative}
+.account-menu{position:absolute;right:0;top:calc(100% + 10px);min-width:210px;background:white;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow2);padding:8px;z-index:40}
+.account-menu button{width:100%;border:0;background:transparent;text-align:left;padding:11px 12px;border-radius:10px;color:var(--ink);font-weight:700;cursor:pointer}
+.account-menu button:hover{background:#f5f7fb}
+.account-menu .danger{color:#b33a3a}
+.auth-backdrop{position:fixed;inset:0;background:rgba(17,24,39,.58);backdrop-filter:blur(7px);display:grid;place-items:center;padding:20px;z-index:100}
+.auth-card{width:min(100%,460px);background:white;border:1px solid var(--line);border-radius:28px;box-shadow:0 30px 90px rgba(10,20,40,.28);padding:34px;position:relative}
+.auth-card h2{font:800 36px/1.05 Manrope;margin:10px 0 12px;letter-spacing:-.04em}
+.auth-card>p{color:var(--muted);margin:0 0 24px}
+.auth-close{position:absolute;right:18px;top:16px;border:0;background:#f0f2f6;color:var(--ink);width:36px;height:36px;border-radius:11px;font-size:24px;cursor:pointer}
+.auth-card form{display:grid;gap:16px}
+.auth-card label{display:grid;gap:7px;font-weight:700;color:var(--ink2)}
+.auth-card input{width:100%;border:1px solid #d9dee8;border-radius:13px;padding:13px 14px;font:inherit;background:#fbfcfe;color:var(--ink)}
+.auth-card input:focus{outline:3px solid rgba(102,92,246,.18);border-color:var(--violet)}
+.auth-submit{border:0;border-radius:14px;padding:14px 16px;background:var(--ink);color:white;font-weight:800;cursor:pointer}
+.auth-submit:disabled{opacity:.6;cursor:wait}
+.auth-error{background:#fff1f0;border:1px solid #ffd7d2;color:#9d342c;border-radius:12px;padding:10px 12px;margin:0;font-size:15px}
