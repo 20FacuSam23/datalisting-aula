@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/aula.css">
+  <link rel="stylesheet" href="assets/meteorologia.css">
 </head>
 <body>
   <a class="skip" href="#contenido">Ir al contenido</a>
@@ -22,6 +23,7 @@
       <button class="nav active" data-view="inicio">Inicio</button>
       <button class="nav" data-view="cursos">Mis cursos</button>
       <button class="nav" data-view="ayuda">Ayuda</button>
+      <button class="nav" data-view="meteorologia">Meteorología</button>
     </nav>
     <div class="top-actions">
       <button class="accessibility" aria-label="Opciones de lectura">Aa</button>
@@ -90,6 +92,7 @@
         <button class="link" data-view="cursos">Ver todos <span>→</span></button>
       </div>
       <div class="course-grid" id="homeCourses"></div>
+      <div class="wx-teaser"><div><h3>Condiciones meteorológicas para remar</h3><p>Viento, ráfagas, lluvia y pronóstico horario para A Remarla, Paraná.</p></div><button type="button" data-view="meteorologia">Ver panel técnico →</button></div>
       <div class="support-strip">
         <div class="support-icon">?</div>
         <div><b>¿Algo no se entiende?</b><span>Pedí ayuda en cualquier momento. Te guiamos paso a paso.</span></div>
@@ -113,6 +116,44 @@
         <div class="course-detail-badge" id="courseDetailCount">0 clases</div>
       </div>
       <div class="lesson-list" id="courseLessons"></div>
+    </section>
+
+
+    <section class="section view hidden" data-section="meteorologia">
+      <div class="wx-intro">
+        <div><span class="eyebrow">A REMARLA · KAYAK Y SUP</span>
+          <h1>Panel meteorológico técnico</h1>
+          <p>Pronóstico para la zona del Balneario Thompson, Paraná. Información del modelo meteorológico, no mediciones de una estación local.</p></div>
+        <button class="wx-refresh" id="wxRefresh" type="button">Actualizar datos ↻</button>
+      </div>
+      <div class="wx-location"><strong>Paraná · Entre Ríos · Argentina</strong><span id="wxUpdate">Esperando primera consulta</span></div>
+      <div class="wx-status" id="wxStatus" role="status">Abrí el panel para consultar el pronóstico.</div>
+      <div id="wxContent" hidden>
+        <div class="wx-overview">
+          <article class="wx-wind">
+            <small>VIENTO A 10 M · km/h</small>
+            <div class="wx-wind-value"><span id="wxWind">—</span> <span style="font-size:20px">km/h</span></div>
+            <div class="wx-wind-direction" id="wxDirection">Dirección —</div>
+            <div class="wx-compass"><div class="wx-compass-ring"><span class="wx-n">N</span><span class="wx-compass-pointer" id="wxPointer">↑</span></div>
+            <div class="wx-wind-aside">La flecha señala desde dónde viene el viento. Datos previstos a 10 metros de altura.</div></div>
+          </article>
+          <div class="wx-metrics">
+            <article class="wx-metric"><span class="wx-label">Ráfagas</span><strong class="wx-number"><span id="wxGust">—</span> km/h</strong><small class="wx-unit-note">Picos de viento</small></article>
+            <article class="wx-metric"><span class="wx-label">Temperatura</span><strong class="wx-number" id="wxTemp">—</strong><small class="wx-unit-note">Aire a 2 m</small></article>
+            <article class="wx-metric"><span class="wx-label">Humedad relativa</span><strong class="wx-number" id="wxHumidity">—</strong><small class="wx-unit-note">Porcentaje</small></article>
+            <article class="wx-metric"><span class="wx-label">Presión atmosférica</span><strong class="wx-number" id="wxPressure">—</strong><small class="wx-unit-note">Reducida al nivel del mar</small></article>
+            <article class="wx-metric"><span class="wx-label">Nubosidad</span><strong class="wx-number" id="wxCloud">—</strong><small class="wx-unit-note">Cobertura total prevista</small></article>
+            <article class="wx-metric"><span class="wx-label">Precipitación próxima hora</span><strong class="wx-number" id="wxRain">—</strong><small class="wx-unit-note" id="wxRainNote">Acumulado previsto</small></article>
+          </div>
+        </div>
+        <section class="wx-forecast" aria-labelledby="wxForecastTitle">
+          <div class="wx-forecast-title"><h2 id="wxForecastTitle">Viento y ráfagas · próximas 24 h</h2><small>Valores modelados en km/h · intervalos de 2 h</small></div>
+          <div class="wx-bars" id="wxBars" role="img" aria-label="Gráfico de barras de velocidad del viento y ráfagas de las próximas horas"></div>
+          <div class="wx-legend"><span><i class="wx-dot"></i>Viento</span><span><i class="wx-dot gust"></i>Ráfagas</span></div>
+          <div class="wx-hourly-scroll"><table class="wx-hourly"><thead><tr><th>Hora local</th><th>Viento km/h</th><th>Ráfaga km/h</th><th>Origen</th><th>°C</th><th>Lluvia mm</th></tr></thead><tbody id="wxHourlyBody"></tbody></table></div>
+        </section>
+      </div>
+      <p class="wx-footer">Fuente: <a href="https://www.met.no/en" target="_blank" rel="noopener noreferrer">Norwegian Meteorological Institute (MET Norway)</a>, servicio Locationforecast 2.0 (datos meteorológicos bajo licencia CC BY 4.0). Punto geográfico aproximado al Thompson. La dirección y velocidad del viento sobre el río pueden diferir del pronóstico a 10 m. <strong>No constituye una evaluación de seguridad para navegar.</strong> La altura del río y las corrientes no están incluidas y deben consultarse por separado.</p>
     </section>
 
     <section class="section view hidden" data-section="ayuda">
@@ -151,5 +192,6 @@
   <footer><div class="footer-brand"><span class="brand-mark"><i></i><i></i><i></i></span><b>Datalisting Aula</b></div><p>La tecnología a tu servicio, y no al revés.</p><small>Accesibilidad · Privacidad · Ayuda</small></footer>
   <script src="config.js"></script>
   <script src="assets/aula.js"></script>
+  <script src="assets/meteorologia.js"></script>
 </body>
 </html>
