@@ -1,111 +1,89 @@
-/* Pronóstico técnico para zona Thompson. Open-Meteo forecast API (uso gratuito no comercial).
- * Datos de modelo, no estación local. Para uso comercial, revisar licencia del proveedor. */
+/* A Remarla – panel de pronóstico por hora, Open-Meteo. No son observaciones. */
 (() => {
-  "use strict";
-  const lat = -31.716, lon = -60.504; // coordenadas de referencia aproximadas
-  const url = "https://api.open-meteo.com/v1/forecast?latitude=" + lat + "&longitude=" + lon + "&hourly=temperature_2m,relative_humidity_2m,pressure_msl,cloud_cover,precipitation,wind_speed_10m,wind_gusts_10m,wind_direction_10m&wind_speed_unit=kmh&timezone=GMT&forecast_days=2";
-  const cacheKey = "aula_met_thompson_v1";
-  const cacheMs = 30 * 60 * 1000;
-  let busy = false, initialized = false;
-  const $ = (id) => document.getElementById(id);
-  const fmt = (v, digits = 0) => Number.isFinite(Number(v)) && v !== null && v !== undefined
-    ? Number(v).toLocaleString("es-AR", {maximumFractionDigits:digits,minimumFractionDigits:digits}) : "—";
-  const kmh = (v) => v == null ? null : v;
-  const direction = (deg) => deg == null ? "—" : ["N","NE","E","SE","S","SO","O","NO"][Math.round((deg % 360) / 45) % 8];
-  const localDate = (date, options) => new Intl.DateTimeFormat("es-AR", {timeZone:"America/Argentina/Cordoba", ...options}).format(date);
-  const val = (id, value) => {const node=$(id); if(node) node.textContent=value;};
-  const item = (p) => p.data?.instant?.details ?? {};
-  const oneHour = (p) => p.data?.next_1_hours?.details ?? {};
-  function render(timeseries, fetchedAt) {
-    const valid = timeseries.filter(p => new Date(p.time).getTime() >= Date.now() - 45*60000);
-    const points = (valid.length ? valid : timeseries).slice(0,24);
-    if (!points.length) throw new Error("El proveedor no devolvió horas válidas.");
-    const now=points[0], d=item(now), h=oneHour(now);
-    val("wxWind", fmt(kmh(d.wind_speed),1));
-    val("wxDirection", d.wind_from_direction == null ? "Dirección no disponible" : direction(d.wind_from_direction) + " · desde " + fmt(d.wind_from_direction) + "°");
-    val("wxGust", fmt(kmh(d.wind_speed_of_gust),1));
-    val("wxTemp",fmt(d.air_temperature,1)+" °C");
-    val("wxFeels",fmt(d.air_temperature,1)+" °C"); // no se presenta como sensación térmica; ver etiqueta de la tarjeta
-    val("wxHumidity",fmt(d.relative_humidity)+" %");
-    val("wxPressure",fmt(d.air_pressure_at_sea_level)+" hPa");
-    val("wxCloud",fmt(d.cloud_area_fraction)+" %");
-    val("wxRain",h.precipitation_amount == null ? "—" : fmt(h.precipitation_amount,1)+" mm");
-    val("wxRainNote", h.precipitation_amount == null ? "Acumulado 1 h no disponible" : "Precipitación prevista en la próxima hora");
-    val("wxUpdate", "Modelo: " + localDate(new Date(now.time),{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}) + " · consulta: " + localDate(new Date(fetchedAt),{hour:"2-digit",minute:"2-digit"}));
-    const arrow=$("wxPointer");if(arrow && d.wind_from_direction != null)arrow.style.transform="rotate("+d.wind_from_direction+"deg)";
-    const graph=points.filter((_, i)=> i%2===0).slice(0,12);
-    const ceiling=Math.max(5,...graph.flatMap(p=>[kmh(item(p).wind_speed)||0, kmh(item(p).wind_speed_of_gust)||0]));
-    $("wxBars").replaceChildren(...graph.map(p=>{
-      const d=item(p), wrap=document.createElement("div");wrap.className="wx-bar-hour";
-      const group=document.createElement("div");group.className="wx-bar-group";
-      for(const [v,type] of [[kmh(d.wind_speed),"normal"],[kmh(d.wind_speed_of_gust),"gust"]]){
-        const bar=document.createElement("div");bar.className="wx-bar "+type;
-        bar.style.height=Math.max(2,Math.min(100,(v||0)/ceiling*100))+"%";
-        bar.title=type==="gust"?"Ráfaga "+fmt(v,1)+" km/h":"Viento "+fmt(v,1)+" km/h";
-        group.append(bar);
-      }
-      const label=document.createElement("div");label.className="wx-bar-time";
-      label.textContent=localDate(new Date(p.time),{hour:"2-digit"})+" h";
-      wrap.append(group,label);return wrap;
-    }));
-    const tbody=$("wxHourlyBody");tbody.replaceChildren(...points.slice(0,12).map(p=>{
-      const d=item(p),h=oneHour(p),tr=document.createElement("tr");
-      const arr=[
-        localDate(new Date(p.time),{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}),
-        fmt(kmh(d.wind_speed),1),fmt(kmh(d.wind_speed_of_gust),1),
-        direction(d.wind_from_direction),fmt(d.air_temperature,1),
-        h.precipitation_amount == null ? "—" : fmt(h.precipitation_amount,1)
-      ];
-      for(const value of arr){const td=document.createElement("td");td.textContent=value;tr.append(td);}return tr;
-    }));
-    $("wxStatus").hidden=true;$("wxContent").hidden=false;
-  }
-  async function load(force=false) {
-    if(busy)return;busy=true;
-    const btn=$("wxRefresh");btn.disabled=true;
-    $("wxStatus").hidden=false;$("wxStatus").textContent="Actualizando pronóstico…";
-    try{
-      let cached=null;try{cached=JSON.parse(sessionStorage.getItem(cacheKey)||"null");}catch{}
-      if(cached && Array.isArray(cached.series) && (Date.now()-cached.savedAt<cacheMs) && !force){
-        render(cached.series,cached.savedAt);return;
-      }
-      const response=await fetch(url,{headers:{"Accept":"application/json"},signal:AbortSignal.timeout(18000)});
-      if(!response.ok)throw new Error("HTTP "+response.status);
-      const payload=await response.json();
-      if(!Array.isArray(payload.hourly?.time))throw new Error("Respuesta incompleta");
-      const hours = payload.hourly;
-      const series = hours.time.map((time,i) => ({
-        time: time + "Z",
-        data: {
-          instant: {details: {
-            wind_speed: hours.wind_speed_10m?.[i],
-            wind_speed_of_gust: hours.wind_gusts_10m?.[i],
-            wind_from_direction: hours.wind_direction_10m?.[i],
-            air_temperature: hours.temperature_2m?.[i],
-            relative_humidity: hours.relative_humidity_2m?.[i],
-            air_pressure_at_sea_level: hours.pressure_msl?.[i],
-            cloud_area_fraction: hours.cloud_cover?.[i]
-          }}, next_1_hours: {details: {precipitation_amount: hours.precipitation?.[i]}}
-        }
-      }));
-      const savedAt=Date.now();
-      try{sessionStorage.setItem(cacheKey,JSON.stringify({savedAt,series:series}));}catch{}
-      render(series,savedAt);
-    }catch(err){
-      let cached=null;try{cached=JSON.parse(sessionStorage.getItem(cacheKey)||"null");}catch{}
-      if(cached && Array.isArray(cached.series)){
-        try{render(cached.series,cached.savedAt);val("wxUpdate","Datos en caché · última consulta: "+localDate(new Date(cached.savedAt),{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}));}
-        catch{}
-      }else{
-        $("wxContent").hidden=true;
-      }
-      $("wxStatus").hidden=false;
-      $("wxStatus").textContent="No se pudo actualizar el pronóstico meteorológico. Verificá la conexión e intentá nuevamente.";
-      console.warn("Meteorología:",err);
-    }finally{busy=false;btn.disabled=false;}
-  }
-  const init=()=>{if(initialized)return;initialized=true;$("wxRefresh")?.addEventListener("click",()=>load(true));load();};
-  document.querySelectorAll('[data-view="meteorologia"]').forEach(button=>button.addEventListener("click",init));
-  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>{}); 
-  // El panel es información general y no requiere autenticación distinta de la de Aula.
+"use strict";
+const $ = id => document.getElementById(id);
+const endpoint = "https://api.open-meteo.com/v1/forecast?latitude=-31.716&longitude=-60.504&hourly=temperature_2m,relative_humidity_2m,pressure_msl,cloud_cover,precipitation,wind_speed_10m,wind_gusts_10m,wind_direction_10m&wind_speed_unit=kmh&timezone=GMT&forecast_days=3";
+const cacheKey="aula_wx_thompson_v2",TTL=30*60*1000,ns="http://www.w3.org/2000/svg";
+let started=false,loading=false,points=[],period=24,selected=0;
+const valid = x => typeof x==="number" && Number.isFinite(x);
+const num=(x,dec=0)=>valid(x)?x.toLocaleString("es-AR",{minimumFractionDigits:dec,maximumFractionDigits:dec}):"—";
+const set=(id,s)=>{const e=$(id);if(e)e.textContent=s;};
+const hour=date=>new Intl.DateTimeFormat("es-AR",{timeZone:"America/Argentina/Cordoba",hour:"2-digit",minute:"2-digit"}).format(date);
+const full=date=>new Intl.DateTimeFormat("es-AR",{timeZone:"America/Argentina/Cordoba",weekday:"short",day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}).format(date);
+const compass=d=>valid(d)?["N","NE","E","SE","S","SO","O","NO"][Math.round(((d%360)+360)%360/45)%8]:"—";
+function svg(tag,attr,text){const e=document.createElementNS(ns,tag);for(const [k,v]of Object.entries(attr||{}))e.setAttribute(k,String(v));if(text!==undefined)e.textContent=text;return e;}
+function lineChart(id,series,opts={}) {
+ const root=$(id);if(!root)return;root.replaceChildren();const width=600,height=210,pad={l:39,r:10,t:18,b:31};
+ root.setAttribute("viewBox", "0 0 600 210");root.setAttribute("preserveAspectRatio","xMidYMid meet");
+ const n=series.length;if(!n)return;
+ const values=series.flatMap(s=>s.data.map(p=>p.value).filter(valid)),mn=opts.zero?0:Math.min(...values,0),mx=Math.max(1,...values),extent=Math.max(1,mx-mn);
+ const x=i=>pad.l+(width-pad.l-pad.r)*i/Math.max(1,n-1);
+ const y=v=>height-pad.b-((v-mn)/extent)*(height-pad.t-pad.b);
+ for(let i=0;i<=3;i++){const v=mn+extent*i/3;root.append(svg("line",{x1:pad.l,x2:width-pad.r,y1:y(v),y2:y(v),stroke:"#d9e6ec","stroke-width":1}));root.append(svg("text",{x:pad.l-7,y:y(v)+4,"text-anchor":"end",fill:"#8094a0","font-size":11},num(v,0)));}
+ for(const i of [0,Math.floor((n-1)/2),n-1])root.append(svg("text",{x:x(i),y:height-9,"text-anchor":"middle",fill:"#6e8190","font-size":11},hour(points[i].time)));
+ if(opts.bars){const values=series[0].data;values.forEach((p,i)=>{const bw=Math.min(20,(width-pad.l-pad.r)/n*.7);root.append(svg("rect",{x:x(i)-bw/2,y:y(p.value||0),width:bw,height:Math.max(0,y(0)-y(p.value||0)),rx:3,fill:"#44b2bd"}));});}
+ else for(const s of series){
+ const mapped=s.data.map((p,i)=>valid(p.value)?{i,v:p.value}:null).filter(Boolean);
+ if(mapped.length>1){const d=mapped.map((p,j)=>(j?"L":"M")+x(p.i).toFixed(1)+","+y(p.v).toFixed(1)).join(" ");
+ root.append(svg("path",{d,fill:"none",stroke:s.color,"stroke-width":3,"stroke-linecap":"round","stroke-linejoin":"round"}));}
+ }
+ const sel=selected<n?selected:n-1;root.append(svg("line",{x1:x(sel),x2:x(sel),y1:pad.t,y2:height-pad.b,stroke:"#203e54","stroke-width":1.5,"stroke-dasharray":"4 4"}));
+ for(const s of series){const value=s.data[sel]?.value;if(valid(value))root.append(svg("circle",{cx:x(sel),cy:y(value),r:5,fill:s.color,stroke:"#fff","stroke-width":2}));}
+}
+function redraw(){
+ const shown=points.slice(0,period);if(!shown.length)return;selected=Math.min(selected,shown.length-1);
+ const wind=shown.map(p=>({value:p.wind})),gust=shown.map(p=>({value:p.gust})),temp=shown.map(p=>({value:p.temp})),rain=shown.map(p=>({value:p.rain}));
+ lineChart("wxWindChart",[{data:wind,color:"#0791aa"},{data:gust,color:"#ef9943"}],{zero:true});
+ lineChart("wxTempChart",[{data:temp,color:"#ef9943"}]);
+ lineChart("wxRainChart",[{data:rain,color:"#36aab7"}],{zero:true,bars:true});
+ const s=shown[selected];set("wxSelectedTime",full(s.time));set("wxSelectedWind",num(s.wind,1));set("wxSelectedGust",num(s.gust,1));set("wxSelectedTemp",num(s.temp,1));set("wxSelectedRain",num(s.rain,1));
+ const gusts=shown.map(p=>p.gust).filter(valid),rains=shown.map(p=>p.rain).filter(valid);
+ set("wxMaxGust",gusts.length?num(Math.max(...gusts),1)+" km/h":"—");set("wxTotalRain",rains.length?num(rains.reduce((a,b)=>a+b,0),1)+" mm":"—");
+ const slider=$("wxHourSlider");slider.max=String(shown.length-1);slider.value=String(selected);
+ const tbody=$("wxHourlyBody");tbody.replaceChildren(...shown.map((p,i)=>{
+   const tr=document.createElement("tr");if(i===selected)tr.className="wx-selected-row";
+   for(const value of [full(p.time),num(p.wind,1),num(p.gust,1),compass(p.direction),num(p.temp,1),num(p.rain,1)]){const td=document.createElement("td");td.textContent=value;tr.append(td);}
+   tr.addEventListener("click",()=>{selected=i;redraw();});return tr;
+ }));
+}
+function render(raw,at,isCache=false){
+ const h=raw.hourly;if(!Array.isArray(h?.time))throw new Error("Datos horarios incompletos");
+ const now=Date.now();const p=h.time.map((time,i)=>({
+  time:new Date(time+"Z"),wind:h.wind_speed_10m?.[i],gust:h.wind_gusts_10m?.[i],direction:h.wind_direction_10m?.[i],
+  temp:h.temperature_2m?.[i],humidity:h.relative_humidity_2m?.[i],pressure:h.pressure_msl?.[i],
+  cloud:h.cloud_cover?.[i],rain:h.precipitation?.[i]
+ })).filter(p=>Number.isFinite(p.time.getTime())&&p.time.getTime()>=now-45*60000);
+ if(!p.length)throw new Error("No hay horas disponibles");points=p;selected=0;
+ const first=p[0];
+ for(const [id,x] of [["wxWind",first.wind],["wxGust",first.gust],["wxTemp",first.temp],["wxHumidity",first.humidity],["wxPressure",first.pressure],["wxCloud",first.cloud],["wxRain",first.rain]])set(id,num(x,(id==="wxWind"||id==="wxGust"||id==="wxTemp"||id==="wxRain")?1:0));
+ set("wxDirection",valid(first.direction)?"Origen "+compass(first.direction)+" · "+num(first.direction)+"°":"Dirección no disponible");
+ if(valid(first.direction))$("wxPointer").style.transform="rotate("+first.direction+"deg)";
+ set("wxUpdate",(isCache?"Datos guardados":"Consultado")+" "+hour(new Date(at)));
+ for(const b of document.querySelectorAll("[data-wx-hours]")){const active=+b.dataset.wxHours===period;b.classList.toggle("active",active);b.setAttribute("aria-pressed",String(active));}
+ redraw();$("wxContent").hidden=false;$("wxStatus").hidden=true;
+}
+async function load(force=false){
+ if(loading)return;loading=true;const btn=$("wxRefresh");btn.disabled=true;$("wxStatus").hidden=false;set("wxStatus","Actualizando datos…");
+ let cached=null;try{cached=JSON.parse(sessionStorage.getItem(cacheKey)||"null");}catch{}
+ try{
+   if(!force&&cached?.at&&Date.now()-cached.at<TTL){render(cached.payload,cached.at,true);return;}
+   const ctrl=new AbortController();const timeout=setTimeout(()=>ctrl.abort(),15000);
+   let resp;try{resp=await fetch(endpoint,{signal:ctrl.signal,headers:{Accept:"application/json"}});}finally{clearTimeout(timeout);}
+   if(!resp.ok)throw new Error("Respuesta "+resp.status);
+   const payload=await resp.json();if(!payload.hourly?.time)throw new Error("Pronóstico incompleto");
+   const at=Date.now();try{sessionStorage.setItem(cacheKey,JSON.stringify({payload,at}));}catch{}
+   render(payload,at);
+ }catch(e){
+   let fallback=false;if(cached?.payload){try{render(cached.payload,cached.at,true);fallback=true;}catch{}}
+   $("wxStatus").hidden=false;set("wxStatus",fallback?"Sin conexión con la API. Se muestran los últimos datos almacenados, que pueden estar desactualizados.":"No pudimos consultar la API meteorológica. Comprobá la conexión y actualizá.");console.warn("Weather API",e);
+ }finally{loading=false;btn.disabled=false;}
+}
+function init(){
+ if(started)return;started=true;
+ $("wxRefresh")?.addEventListener("click",()=>load(true));
+ $("wxHourSlider")?.addEventListener("input",e=>{selected=Number(e.target.value);redraw();});
+ document.querySelectorAll("[data-wx-hours]").forEach(b=>b.addEventListener("click",()=>{period=Number(b.dataset.wxHours);selected=0;document.querySelectorAll("[data-wx-hours]").forEach(x=>{const a=x===b;x.classList.toggle("active",a);x.setAttribute("aria-pressed",String(a));});redraw();}));
+ load();
+}
+document.querySelectorAll('[data-view="meteorologia"]').forEach(button=>button.addEventListener("click",init));
 })();
