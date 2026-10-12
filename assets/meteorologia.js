@@ -15,8 +15,8 @@ function svg(tag,attr,text){const e=document.createElementNS(ns,tag);for(const [
 function lineChart(id,series,opts={}) {
  const root=$(id);if(!root)return;root.replaceChildren();const width=600,height=210,pad={l:39,r:10,t:18,b:31};
  root.setAttribute("viewBox", "0 0 600 210");root.setAttribute("preserveAspectRatio","xMidYMid meet");
- const n=series.length;if(!n)return;
- const values=series.flatMap(s=>s.data.map(p=>p.value).filter(valid)),mn=opts.zero?0:Math.min(...values,0),mx=Math.max(1,...values),extent=Math.max(1,mx-mn);
+ const n=series[0]?.data?.length||0;if(!n)return;
+ const values=series.flatMap(s=>s.data.map(p=>p.value).filter(valid));if(!values.length)return;const mn=opts.zero?0:Math.min(...values)-2,mx=Math.max(...values,opts.zero?1:Math.max(...values)+2),extent=Math.max(1,mx-mn);
  const x=i=>pad.l+(width-pad.l-pad.r)*i/Math.max(1,n-1);
  const y=v=>height-pad.b-((v-mn)/extent)*(height-pad.t-pad.b);
  for(let i=0;i<=3;i++){const v=mn+extent*i/3;root.append(svg("line",{x1:pad.l,x2:width-pad.r,y1:y(v),y2:y(v),stroke:"#d9e6ec","stroke-width":1}));root.append(svg("text",{x:pad.l-7,y:y(v)+4,"text-anchor":"end",fill:"#8094a0","font-size":11},num(v,0)));}
