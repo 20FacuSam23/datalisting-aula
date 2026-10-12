@@ -1,23 +1,21 @@
-/* Pronóstico técnico de referencia para Balneario Thompson, Paraná.
- * MET Norway Locationforecast 2.0; datos de modelo, no mediciones in situ.
- * Sin credenciales en el navegador. Consultas sujetas a caché del proveedor. */
+/* Pronóstico técnico para zona Thompson. Open-Meteo forecast API (uso gratuito no comercial).
+ * Datos de modelo, no estación local. Para uso comercial, revisar licencia del proveedor. */
 (() => {
   "use strict";
   const lat = -31.716, lon = -60.504; // coordenadas de referencia aproximadas
-  const url = "https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=" + lat + "&lon=" + lon;
+  const url = "https://api.open-meteo.com/v1/forecast?latitude=" + lat + "&longitude=" + lon + "&hourly=temperature_2m,relative_humidity_2m,pressure_msl,cloud_cover,precipitation,wind_speed_10m,wind_gusts_10m,wind_direction_10m&wind_speed_unit=kmh&timezone=GMT&forecast_days=2";
   const cacheKey = "aula_met_thompson_v1";
   const cacheMs = 30 * 60 * 1000;
   let busy = false, initialized = false;
   const $ = (id) => document.getElementById(id);
   const fmt = (v, digits = 0) => Number.isFinite(Number(v)) && v !== null && v !== undefined
     ? Number(v).toLocaleString("es-AR", {maximumFractionDigits:digits,minimumFractionDigits:digits}) : "—";
-  const kmh = (v) => v == null ? null : v * 3.6;
+  const kmh = (v) => v == null ? null : v;
   const direction = (deg) => deg == null ? "—" : ["N","NE","E","SE","S","SO","O","NO"][Math.round((deg % 360) / 45) % 8];
   const localDate = (date, options) => new Intl.DateTimeFormat("es-AR", {timeZone:"America/Argentina/Cordoba", ...options}).format(date);
   const val = (id, value) => {const node=$(id); if(node) node.textContent=value;};
   const item = (p) => p.data?.instant?.details ?? {};
   const oneHour = (p) => p.data?.next_1_hours?.details ?? {};
-  const twoHours = (p) => p.data?.next_6_hours?.details ?? {};
   function render(timeseries, fetchedAt) {
     const valid = timeseries.filter(p => new Date(p.time).getTime() >= Date.now() - 45*60000);
     const points = (valid.length ? valid : timeseries).slice(0,24);
@@ -74,10 +72,25 @@
       const response=await fetch(url,{headers:{"Accept":"application/json"},signal:AbortSignal.timeout(18000)});
       if(!response.ok)throw new Error("HTTP "+response.status);
       const payload=await response.json();
-      if(!Array.isArray(payload.properties?.timeseries))throw new Error("Respuesta incompleta");
+      if(!Array.isArray(payload.hourly?.time))throw new Error("Respuesta incompleta");
+      const hours = payload.hourly;
+      const series = hours.time.map((time,i) => ({
+        time: time + "Z",
+        data: {
+          instant: {details: {
+            wind_speed: hours.wind_speed_10m?.[i],
+            wind_speed_of_gust: hours.wind_gusts_10m?.[i],
+            wind_from_direction: hours.wind_direction_10m?.[i],
+            air_temperature: hours.temperature_2m?.[i],
+            relative_humidity: hours.relative_humidity_2m?.[i],
+            air_pressure_at_sea_level: hours.pressure_msl?.[i],
+            cloud_area_fraction: hours.cloud_cover?.[i]
+          }}, next_1_hours: {details: {precipitation_amount: hours.precipitation?.[i]}}
+        }
+      }));
       const savedAt=Date.now();
-      try{sessionStorage.setItem(cacheKey,JSON.stringify({savedAt,series:payload.properties.timeseries}));}catch{}
-      render(payload.properties.timeseries,savedAt);
+      try{sessionStorage.setItem(cacheKey,JSON.stringify({savedAt,series:series}));}catch{}
+      render(series,savedAt);
     }catch(err){
       let cached=null;try{cached=JSON.parse(sessionStorage.getItem(cacheKey)||"null");}catch{}
       if(cached && Array.isArray(cached.series)){
