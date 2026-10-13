@@ -7,6 +7,93 @@ let currentUser = null;
 
 document.body.classList.add("auth-locked");
 
+/* Datalisting Aula privacy guard
+   A web browser cannot fully prevent OS-level screenshots. These controls
+   reduce casual copying and make captured material attributable. */
+const privacyShield = document.getElementById("privacyShield");
+const privacyWatermark = document.getElementById("privacyWatermark");
+let privacyTimer = null;
+
+function setPrivacyHidden(hidden) {
+  document.body.classList.toggle("privacy-hidden", Boolean(hidden));
+  privacyShield?.setAttribute("aria-hidden", hidden ? "false" : "true");
+}
+
+function updatePrivacyWatermark(user = currentUser) {
+  if (!privacyWatermark) return;
+  clearInterval(privacyTimer);
+
+  if (!user) {
+    privacyWatermark.replaceChildren();
+    privacyWatermark.classList.remove("active");
+    return;
+  }
+
+  const render = () => {
+    const now = new Date().toLocaleString("es-AR", {
+      dateStyle: "short",
+      timeStyle: "short"
+    });
+    const identity = [user.name, user.email].filter(Boolean).join(" · ");
+    const text = `Datalisting Aula · ${identity} · ${now}`;
+
+    privacyWatermark.replaceChildren();
+    for (let i = 0; i < 18; i += 1) {
+      const item = document.createElement("span");
+      item.textContent = text;
+      privacyWatermark.append(item);
+    }
+  };
+
+  render();
+  privacyWatermark.classList.add("active");
+  privacyTimer = setInterval(render, 60000);
+}
+
+window.addEventListener("blur", () => setPrivacyHidden(true));
+window.addEventListener("focus", () => setPrivacyHidden(false));
+window.addEventListener("pagehide", () => setPrivacyHidden(true));
+window.addEventListener("pageshow", () => setPrivacyHidden(false));
+
+document.addEventListener("visibilitychange", () => {
+  setPrivacyHidden(document.hidden);
+});
+
+document.addEventListener("contextmenu", event => {
+  if (!event.target.closest("input, textarea")) event.preventDefault();
+});
+
+document.addEventListener("copy", event => {
+  if (!event.target.closest("input, textarea")) event.preventDefault();
+});
+
+document.addEventListener("cut", event => {
+  if (!event.target.closest("input, textarea")) event.preventDefault();
+});
+
+document.addEventListener("dragstart", event => {
+  if (!event.target.closest("input, textarea")) event.preventDefault();
+});
+
+document.addEventListener("selectstart", event => {
+  if (!event.target.closest("input, textarea")) event.preventDefault();
+});
+
+window.addEventListener("beforeprint", () => setPrivacyHidden(true));
+window.addEventListener("afterprint", () => setPrivacyHidden(false));
+
+document.addEventListener("keydown", event => {
+  const key = String(event.key).toLowerCase();
+  const modifier = event.ctrlKey || event.metaKey;
+
+  if (modifier && ["p", "s", "u"].includes(key)) {
+    event.preventDefault();
+    setPrivacyHidden(true);
+    setTimeout(() => setPrivacyHidden(false), 900);
+  }
+});
+
+
 const tones = ["warm", "blue", "green"];
 const icons = ["⌨", "◎", "▣", "✉", "☁", "✓"];
 
@@ -221,6 +308,8 @@ function setAccountUI(user) {
   document.querySelector("#profileAvatar").textContent = currentUser ? initials(currentUser.name) : "?";
   document.querySelector("#profileName").textContent = currentUser?.name || "Ingresar";
   document.querySelector("#profileRole").textContent = currentUser ? roleLabel(currentUser.role) : "Cuenta del aula";
+
+  updatePrivacyWatermark(currentUser);
 
   document.querySelector("#accountProfile").classList.toggle("hidden", !currentUser);
   document.querySelector("#accountCourses").classList.toggle("hidden", !currentUser);
