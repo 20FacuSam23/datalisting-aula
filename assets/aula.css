@@ -77,3 +77,76 @@ body.auth-locked .brand{margin-right:auto}
   .lesson-row{grid-template-columns:48px 1fr}
   .lesson-open{grid-column:1/-1;width:100%}
 }
+
+
+/* Protección de contenido y derechos */
+.privacy-shield{
+  position:fixed;
+  inset:0;
+  z-index:99999;
+  display:none;
+  place-items:center;
+  padding:24px;
+  background:#111827;
+  color:white;
+  text-align:center;
+}
+.privacy-shield-card{
+  display:grid;
+  gap:6px;
+  max-width:440px;
+  padding:28px 32px;
+  border:1px solid rgba(255,255,255,.14);
+  border-radius:22px;
+  background:rgba(35,46,70,.96);
+  box-shadow:0 24px 70px rgba(0,0,0,.24);
+}
+.privacy-shield-card strong{font:800 24px Manrope,sans-serif}
+.privacy-shield-card span{color:#c5cddd}
+body.privacy-hidden .privacy-shield{display:grid}
+body.privacy-hidden > :not(.privacy-shield){visibility:hidden!important}
+
+.privacy-watermark{
+  position:fixed;
+  inset:-12vh -12vw;
+  z-index:9000;
+  display:none;
+  grid-template-columns:repeat(3,minmax(260px,1fr));
+  align-content:space-around;
+  gap:70px 34px;
+  pointer-events:none;
+  overflow:hidden;
+  transform:rotate(-18deg);
+  opacity:.055;
+  color:#172033;
+  font:700 12px/1.35 Manrope,sans-serif;
+  letter-spacing:.02em;
+}
+.privacy-watermark.active{display:grid}
+.privacy-watermark span{
+  white-space:nowrap;
+  text-align:center;
+}
+
+body{
+  -webkit-user-select:none;
+  user-select:none;
+}
+input,textarea,select{
+  -webkit-user-select:text;
+  user-select:text;
+}
+
+@media print{
+  body > :not(.privacy-shield){display:none!important}
+  .privacy-shield{display:grid!important;position:fixed!important}
+}
+
+@media(max-width:720px){
+  .privacy-watermark{
+    grid-template-columns:repeat(2,minmax(220px,1fr));
+    gap:56px 20px;
+    font-size:10px;
+    opacity:.06;
+  }
+}
