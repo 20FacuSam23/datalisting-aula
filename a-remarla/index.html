@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#f5f7fb">
+  <meta name="robots" content="noindex,nofollow,noarchive,nosnippet,noimageindex">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <title>A Remarla · Aula y río</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/aula.css?v=20261017-1">
+  <link rel="stylesheet" href="../assets/meteorologia.css?v=20261017-1">
+<link rel="stylesheet" href="../assets/portal.css?v=20261017-1"></head>
+<body>
+  <div class="privacy-shield" id="privacyShield" aria-hidden="true">
+    <div class="privacy-shield-card">
+      <strong>Contenido protegido</strong>
+      <span>Volvé a Datalisting Aula para continuar.</span>
+    </div>
+  </div>
+  <div class="privacy-watermark" id="privacyWatermark" aria-hidden="true"></div>
+  <a class="skip" href="#contenido">Ir al contenido</a>
+
+  <header class="topbar">
+    <a class="brand" href="#" data-view="inicio">
+      <span class="brand-mark"><i></i><i></i><i></i></span>
+      <span><img id="tenantLogo" alt="" hidden><b data-brand-name>A Remarla</b><small>AULA</small></span>
+    </a>
+    <nav aria-label="Navegación principal"><button class="nav" data-view="administracion" data-manager-only hidden>Administrar aula</button>
+      <button class="nav active" data-view="inicio">Inicio</button>
+      <button class="nav" data-view="cursos">Mis cursos</button>
+      <button class="nav" data-view="ayuda">Ayuda</button>
+      <button class="nav" data-view="meteorologia" data-nautical-only hidden>Meteorología</button>
+    </nav>
+    <div class="top-actions">
+      <button class="accessibility" aria-label="Opciones de lectura">Aa</button>
+      <div class="account">
+        <button class="profile" id="profileButton" aria-haspopup="menu" aria-expanded="false">
+          <span class="avatar" id="profileAvatar">?</span>
+          <span><span id="profileName">Ingresar</span><small id="profileRole">Cuenta del aula</small></span>
+          <b>⌄</b>
+        </button>
+        <div class="account-menu hidden" id="accountMenu" role="menu">
+          <button type="button" id="accountProfile" role="menuitem">Mi perfil</button>
+          <button type="button" id="accountCourses" role="menuitem">Mis cursos</button>
+          <button type="button" id="accountLogout" role="menuitem" class="danger">Cerrar sesión</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div id="portalMessage" class="portal-message" role="status" hidden></div><main id="contenido">
+    <section class="hero view" data-section="inicio">
+      <div class="hero-shell">
+        <div class="hero-copy">
+          <span class="eyebrow light">TU ESPACIO DE APRENDIZAJE</span>
+          <h1>Aprender, remar<br><span>y compartir el río.</span></h1>
+          <p>Tu escuela, tus clases y las condiciones previstas del río, en un mismo espacio.</p>
+          <div class="actions">
+            <button class="primary" data-view="cursos">Seguir aprendiendo <b>→</b></button>
+            <button class="ghost" data-view="ayuda">Necesito ayuda</button>
+          </div>
+          <div class="hero-meta">
+            <div><strong>0</strong><span>Cursos disponibles</span></div>
+            <div><strong>0</strong><span>Clases completadas</span></div>
+            <div><strong>0</strong><span>Clases pendientes</span></div>
+          </div>
+        </div>
+
+        <div class="visual-stage"><article class="next-card portal-next"><span class="eyebrow">CONTINUÁ A TU RITMO</span><h2 id="nextCourseTitle">Tu próxima clase comienza acá</h2><p id="nextCourseDescription">Ingresá para ver tus cursos y materiales.</p><button type="button" class="primary" id="continueCourse" disabled>Abrir curso →</button></article></div>
+      </div>
+    </section>
+
+    <section class="section view" data-section="inicio">
+      <div class="section-head">
+        <div><span class="eyebrow">CONTINUÁ TU CAMINO</span><h2>Tus cursos</h2><p>Todo organizado para que sepas siempre cuál es el próximo paso.</p></div>
+        <button class="link" data-view="cursos">Ver todos <span>→</span></button>
+      </div>
+      <div class="course-grid" id="homeCourses"></div>
+      <div class="wx-teaser" data-nautical-only hidden><div><h3>A Remarla · Panel meteorológico</h3><p>Gráficos interactivos de viento, ráfagas, temperatura y lluvia para Paraná.</p></div><button type="button" data-view="meteorologia">Abrir meteorología →</button></div>
+      <div class="support-strip">
+        <div class="support-icon">?</div>
+        <div><b>¿Algo no se entiende?</b><span>Pedí ayuda en cualquier momento. Te guiamos paso a paso.</span></div>
+        <button data-view="ayuda">Ir a Ayuda <span>→</span></button>
+      </div>
+    </section>
+
+    <section class="section view hidden" data-section="cursos">
+      <div class="page-head"><span class="eyebrow">MI APRENDIZAJE</span><h1>Mis cursos</h1><p>Tu biblioteca personal de aprendizaje. Elegí un curso y continuá desde donde quedaste.</p></div>
+      <div class="course-grid" id="allCourses"></div>
+    </section>
+
+    <section class="section view hidden" data-section="curso">
+      <button class="back-link" id="courseBack" type="button">← Volver a mis cursos</button>
+      <div class="course-detail-head">
+        <div>
+          <span class="eyebrow">CURSO</span>
+          <h1 id="courseDetailName">Curso</h1>
+          <p id="courseDetailDescription"></p>
+        </div>
+        <div class="course-detail-badge" id="courseDetailCount">0 clases</div>
+      </div>
+      <div class="lesson-list" id="courseLessons"></div><article id="lessonViewer" class="portal-card" hidden></article><button type="button" class="primary" id="assessmentButton">Evaluación y certificado</button><article id="assessmentBox" class="portal-card" hidden></article>
+    </section>
+
+
+    <section class="section view hidden wx-page" data-section="meteorologia" aria-labelledby="wxTitle">
+      <div class="wx-header">
+        <div class="wx-heading">
+          <div class="wx-identity"><span class="wx-identity-mark" aria-hidden="true">≈</span>
+            <span><strong>A REMARLA</strong><small>CLUB DE RÍO · KAYAK &amp; SUP</small></span></div>
+          <span class="wx-eyebrow">PRONÓSTICO · PARANÁ</span>
+          <h1 id="wxTitle">El río, en datos.</h1>
+          <p>Condiciones meteorológicas previstas para el Balneario Thompson. Gráficos por hora para planificar la consulta de las condiciones antes de remar.</p>
+          <div class="wx-header-meta"><span><span class="wx-live-dot"></span> Pronóstico actualizado</span><span id="wxUpdate">Esperando primera consulta</span></div>
+        </div>
+        <div class="wx-header-actions">
+          <a href="https://www.instagram.com/kayak_parana_club/" class="wx-social" data-instagram target="_blank" rel="noopener noreferrer" aria-label="Ver Instagram de A Remarla">Instagram ↗</a>
+          <button class="wx-refresh" id="wxRefresh" type="button"><span aria-hidden="true">↻</span> Actualizar datos</button>
+        </div>
+      </div>
+      <div class="wx-location"><span>Balneario Thompson · Paraná, Entre Ríos</span><span>Hora local de Argentina · pronóstico, no medición en tiempo real</span></div>
+      <p class="wx-status" id="wxStatus" role="status">Consultando datos meteorológicos…</p>
+
+      <div id="wxContent" hidden>
+        <div class="wx-overview">
+          <article class="wx-wind">
+            <div class="wx-wind-head"><span>VIENTO A 10 METROS</span><span class="wx-wind-tag">Modelo horario</span></div>
+            <div class="wx-wind-reading"><strong id="wxWind">—</strong><span>km/h</span></div>
+            <div class="wx-wind-direction" id="wxDirection">Dirección del viento: —</div>
+            <div class="wx-compass">
+              <div class="wx-compass-ring"><span class="wx-n">N</span><span class="wx-e">E</span><span class="wx-s">S</span><span class="wx-o">O</span>
+                <span class="wx-compass-pointer" id="wxPointer" aria-hidden="true">↑</span></div>
+              <div class="wx-compass-note"><strong>Rosa de orientación</strong><span>La flecha indica de dónde viene el viento.</span></div>
+            </div>
+            <div class="wx-wind-note">El viento pronosticado a 10 m puede variar considerablemente a nivel del agua.</div>
+          </article>
+          <div class="wx-metrics">
+            <article class="wx-metric"><span class="wx-label">Ráfagas</span><div class="wx-metric-reading"><strong id="wxGust">—</strong><span>km/h</span></div><small>Picos pronosticados</small></article>
+            <article class="wx-metric"><span class="wx-label">Temperatura</span><div class="wx-metric-reading"><strong id="wxTemp">—</strong><span>°C</span></div><small>Aire a 2 metros</small></article>
+            <article class="wx-metric"><span class="wx-label">Humedad</span><div class="wx-metric-reading"><strong id="wxHumidity">—</strong><span>%</span></div><small>Humedad relativa</small></article>
+            <article class="wx-metric"><span class="wx-label">Presión</span><div class="wx-metric-reading"><strong id="wxPressure">—</strong><span>hPa</span></div><small>Al nivel del mar</small></article>
+            <article class="wx-metric"><span class="wx-label">Nubosidad</span><div class="wx-metric-reading"><strong id="wxCloud">—</strong><span>%</span></div><small>Cobertura del cielo</small></article>
+            <article class="wx-metric"><span class="wx-label">Precipitación</span><div class="wx-metric-reading"><strong id="wxRain">—</strong><span>mm</span></div><small id="wxRainNote">Próxima hora</small></article>
+          </div>
+        </div>
+
+        <section class="wx-chart-shell" aria-labelledby="wxChartsHeading">
+          <div class="wx-chart-header"><div><span class="wx-eyebrow">EVOLUCIÓN METEOROLÓGICA</span><h2 id="wxChartsHeading">Pronóstico por horas</h2><p>Deslizá la selección para explorar cada hora. Datos expresados en hora argentina.</p></div>
+            <div class="wx-range" role="group" aria-label="Período del pronóstico">
+              <button type="button" data-wx-hours="12">12 h</button><button type="button" data-wx-hours="24" class="active" aria-pressed="true">24 h</button><button type="button" data-wx-hours="48">48 h</button>
+            </div>
+          </div>
+          <div class="wx-selected"><div><small>HORA SELECCIONADA</small><strong id="wxSelectedTime">—</strong></div>
+            <div class="wx-selected-values"><span>Viento <b id="wxSelectedWind">—</b> km/h</span><span>Ráfagas <b id="wxSelectedGust">—</b> km/h</span><span>Temp. <b id="wxSelectedTemp">—</b> °C</span><span>Lluvia <b id="wxSelectedRain">—</b> mm</span></div>
+          </div>
+          <div class="wx-chart-title"><h3>Viento y ráfagas</h3><div class="wx-legend"><span><i class="wx-key wx-key-wind"></i> Viento</span><span><i class="wx-key wx-key-gust"></i> Ráfagas</span></div></div>
+          <div class="wx-chart-viewport"><svg id="wxWindChart" class="wx-chart" role="img" aria-label="Curvas de viento y ráfagas con indicador de la hora seleccionada"></svg></div>
+          <div class="wx-hour-control"><label for="wxHourSlider">Explorar hora</label><input id="wxHourSlider" type="range" min="0" max="23" value="0" step="1"><span>Mové el control para comparar los valores</span></div>
+          <div class="wx-chart-pair">
+            <section class="wx-mini-chart"><div class="wx-chart-title"><h3>Temperatura</h3><small>°C</small></div><div class="wx-chart-viewport"><svg id="wxTempChart" class="wx-chart" role="img" aria-label="Evolución de temperatura prevista"></svg></div></section>
+            <section class="wx-mini-chart"><div class="wx-chart-title"><h3>Precipitación</h3><small>mm por hora</small></div><div class="wx-chart-viewport"><svg id="wxRainChart" class="wx-chart" role="img" aria-label="Barras de precipitación prevista"></svg></div></section>
+          </div>
+          <div class="wx-totals"><div><small>RÁFAGA MÁXIMA EN EL PERÍODO</small><strong id="wxMaxGust">—</strong></div><div><small>PRECIPITACIÓN ACUMULADA</small><strong id="wxTotalRain">—</strong></div></div>
+        </section>
+
+        <section class="wx-forecast" aria-labelledby="wxTableHeading"><div class="wx-forecast-title"><h2 id="wxTableHeading">Detalle técnico horario</h2><small>Deslizá la tabla horizontalmente en el celular</small></div>
+          <div class="wx-hourly-scroll" tabindex="0" role="region" aria-label="Tabla de datos meteorológicos por hora"><table class="wx-hourly"><thead><tr><th>Fecha y hora</th><th>Viento<br>km/h</th><th>Ráfaga<br>km/h</th><th>Desde</th><th>Temperatura<br>°C</th><th>Lluvia<br>mm</th></tr></thead><tbody id="wxHourlyBody"></tbody></table></div>
+        </section>
+      </div>
+      <section class="portal-card"><h2>Río y fuentes oficiales</h2><p>Consultá observaciones y alertas publicadas por sus organismos. Estos enlaces no son mediciones integradas en el panel.</p><div class="official-links"><a href="https://alerta.ina.gob.ar/" target="_blank" rel="noopener">INA · niveles y pronósticos hidrológicos ↗</a><a href="https://www.hidro.gov.ar/" target="_blank" rel="noopener">Servicio de Hidrografía Naval ↗</a><a href="https://www.smn.gob.ar/alertas" target="_blank" rel="noopener">SMN · alertas meteorológicas ↗</a><a href="https://www.noaa.gov/" target="_blank" rel="noopener">NOAA · información meteorológica y oceánica ↗</a></div></section><p class="wx-footer"><strong>Fuente:</strong> <a href="https://api.met.no/" target="_blank" rel="noopener noreferrer">MET Norway</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>. Consultados desde Datalisting; convertidos a km/h y hora argentina. Las variables que el proveedor no devuelve se muestran como no disponibles. Ubicación aproximada: Thompson, Paraná. <strong>No son datos observados en la costa ni una recomendación de seguridad náutica.</strong> Verificar corrientes, nivel del río y alertas oficiales antes de salir.</p>
+    </section>
+
+    <section class="section view hidden" data-section="ayuda">
+      <div class="help">
+        <div><span class="eyebrow">AYUDA SIN COMPLICACIONES</span><h1>Estamos cerca cuando lo necesitás.</h1><p>No hace falta conocer palabras técnicas. Elegí lo que querés hacer y te acompañamos paso a paso.</p></div>
+        <aside>
+          <div class="help-title"><span>?</span><b>¿Con qué te ayudamos?</b></div>
+          <button><i>01</i><span>Cómo entrar a una clase<small>Empezar o continuar una actividad</small></span><b>→</b></button>
+          <button><i>02</i><span>Cómo ver un material<small>PDF, videos y contenidos</small></span><b>→</b></button>
+          <button><i>03</i><span>Recuperar mi acceso<small>Usuario o contraseña</small></span><b>→</b></button>
+          <button><i>04</i><span>Contactar al docente<small>Enviar una consulta</small></span><b>→</b></button>
+        </aside>
+      </div>
+    </section>
+<section class="section view hidden" data-section="administracion"><div class="page-head"><span class="eyebrow">ADMINISTRACIÓN DE TU ESCUELA</span><h1>Cursos, materiales y alumnos</h1><p>Los cambios se guardan en Datalisting. Solo se muestran datos de esta organización.</p></div><div class="portal-admin-grid">
+<article class="portal-card"><h2>1 · Curso</h2><label>Elegí un curso<select id="manageCourse"><option value="">Nuevo curso</option></select></label><form id="courseForm"><label>Nombre<input name="name" required maxlength="255"></label><label>Identificador<input name="slug" pattern="[a-z0-9]+(-[a-z0-9]+)*" required maxlength="100"></label><label>Descripción<textarea name="description" maxlength="5000"></textarea></label><label><input type="checkbox" name="active" checked>Activo</label><button class="primary">Guardar curso</button></form></article>
+<article class="portal-card"><h2>2 · Clases</h2><label>Elegí una clase<select id="manageLesson"><option value="">Nueva clase</option></select></label><form id="lessonForm"><label>Título<input name="title" required maxlength="255"></label><label>Descripción<textarea name="description" maxlength="5000"></textarea></label><label>Contenido de la clase<textarea name="content" rows="8" maxlength="100000"></textarea></label><div class="portal-two"><label>Orden<input name="sort_order" type="number" min="0" value="0" required></label><label>Duración estimada (minutos)<input name="duration_minutes" type="number" min="1" max="1440"></label></div><label><input type="checkbox" name="active" checked>Activa</label><button class="primary">Guardar clase</button></form></article>
+<article class="portal-card"><h2>3 · Material privado</h2><p>Elegí un curso y una clase guardados. Cargá un archivo o un enlace HTTPS.</p><form id="materialForm"><label>Título<input name="title" required maxlength="255"></label><label>Archivo (hasta 20 MB)<input name="file" type="file"></label><label>Enlace alternativo<input name="external_url" type="url" placeholder="https://"></label><button class="primary">Agregar material</button></form></article>
+<article class="portal-card"><h2>4 · Inscribir alumno</h2><p>Elegí primero el curso. La inscripción manual es una habilitación expresa del administrador.</p><form id="enrollForm"><label>Cuenta del alumno<select id="studentSelect" required></select></label><button class="primary">Inscribir al curso</button></form><details><summary>Crear cuenta de alumno</summary><form id="studentForm"><label>Nombre<input name="name" required></label><label>Correo<input type="email" name="email" required></label><label>Contraseña temporal<input type="password" name="password" minlength="12" required autocomplete="new-password"></label><label>Repetir contraseña<input type="password" name="password_confirmation" minlength="12" required autocomplete="new-password"></label><p>El alumno debe cambiarla primero en datalisting.info/login.</p><button class="primary">Crear cuenta</button></form></details></article>
+<article class="portal-card" data-nautical-only hidden><h2>Ubicación del panel náutico</h2><form id="nauticalForm"><label>Lugar<input name="location_name" required></label><label>Latitud<input name="latitude" type="number" step="0.0001" min="-90" max="90" required></label><label>Longitud<input name="longitude" type="number" step="0.0001" min="-180" max="180" required></label><button class="primary">Guardar ubicación</button></form></article></div></section>
+  </main>
+
+  <div class="auth-backdrop hidden" id="authBackdrop">
+    <section class="auth-card" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+      <button class="auth-close" id="authClose" aria-label="Cerrar">×</button>
+      <span class="eyebrow">DATALISTING AULA</span>
+      <h2 id="authTitle">Ingresar al aula</h2>
+      <p>Usá tu cuenta de Datalisting para acceder a tu perfil, cursos y progreso.</p>
+      <form id="loginForm">
+        <label>Correo
+          <input id="loginEmail" type="email" autocomplete="username" required placeholder="tu@correo.com">
+        </label>
+        <label>Contraseña
+          <input id="loginPassword" type="password" autocomplete="current-password" required placeholder="••••••••">
+        </label>
+        <p class="auth-error hidden" id="authError"></p>
+        <button class="auth-submit" type="submit">Ingresar</button>
+      </form>
+    </section>
+  </div>
+
+  <footer><div class="footer-brand"><span class="brand-mark"><i></i><i></i><i></i></span><b data-brand-name>Datalisting Aula</b></div><p>La tecnología a tu servicio, y no al revés.</p><small>Accesibilidad · Privacidad · Ayuda</small></footer>
+  <script src="config.js?v=20261017-1"></script>
+  <script src="../assets/aula.js?v=20261017-1"></script>
+  <script src="../assets/meteorologia.js?v=20261017-1"></script>
+</body>
+</html>

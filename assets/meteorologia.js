@@ -1,9 +1,9 @@
-/* A Remarla – panel de pronóstico por hora, Open-Meteo. No son observaciones. */
+/* Aula: MET Norway vía Datalisting. La maqueta independiente conserva su fuente anterior. */
 (() => {
 "use strict";
 const $ = id => document.getElementById(id);
 const endpoint = "https://api.open-meteo.com/v1/forecast?latitude=-31.716&longitude=-60.504&hourly=temperature_2m,relative_humidity_2m,pressure_msl,cloud_cover,precipitation,wind_speed_10m,wind_gusts_10m,wind_direction_10m&wind_speed_unit=kmh&timezone=GMT&forecast_days=3";
-const cacheKey="aula_wx_thompson_v2",TTL=30*60*1000,ns="http://www.w3.org/2000/svg";
+const cacheKey="aula_wx_v3_"+(window.aulaOrganization||"maqueta"),TTL=30*60*1000,ns="http://www.w3.org/2000/svg";
 let started=false,loading=false,points=[],period=24,selected=0;
 const valid = x => typeof x==="number" && Number.isFinite(x);
 const num=(x,dec=0)=>valid(x)?x.toLocaleString("es-AR",{minimumFractionDigits:dec,maximumFractionDigits:dec}):"—";
@@ -68,11 +68,11 @@ async function load(force=false){
  try{
    if(!force&&cached?.at&&Date.now()-cached.at<TTL){render(cached.payload,cached.at,true);return;}
    const ctrl=new AbortController();const timeout=setTimeout(()=>ctrl.abort(),15000);
-   let resp;try{resp=await fetch(endpoint,{signal:ctrl.signal,headers:{Accept:"application/json"}});}finally{clearTimeout(timeout);}
+   let resp;try{resp=window.aulaApiFetch?await window.aulaApiFetch(`/education/${encodeURIComponent(window.aulaOrganization)}/nautical/forecast`,{signal:ctrl.signal}):await fetch(endpoint,{signal:ctrl.signal,headers:{Accept:"application/json"}});}finally{clearTimeout(timeout);}
    if(!resp.ok)throw new Error("Respuesta "+resp.status);
    const payload=await resp.json();if(!payload.hourly?.time)throw new Error("Pronóstico incompleto");
    const at=Date.now();try{sessionStorage.setItem(cacheKey,JSON.stringify({payload,at}));}catch{}
-   render(payload,at);
+   render(payload,at);if(payload.location_name){const label=document.querySelector(".wx-location span");if(label)label.textContent=payload.location_name;}
  }catch(e){
    let fallback=false;if(cached?.payload){try{render(cached.payload,cached.at,true);fallback=true;}catch{}}
    $("wxStatus").hidden=false;set("wxStatus",fallback?"Sin conexión con la API. Se muestran los últimos datos almacenados, que pueden estar desactualizados.":"No pudimos consultar la API meteorológica. Comprobá la conexión y actualizá.");console.warn("Weather API",e);
@@ -87,3 +87,4 @@ function init(){
 }
 document.querySelectorAll('[data-view="meteorologia"]').forEach(button=>button.addEventListener("click",init));
 })();
+
