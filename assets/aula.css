@@ -138,8 +138,8 @@ input,textarea,select{
 }
 
 @media print{
-  body > :not(.privacy-shield){display:none!important}
-  .privacy-shield{display:grid!important;position:fixed!important}
+  body:not(.matrix-admin) > :not(.privacy-shield){display:none!important}
+  body:not(.matrix-admin) .privacy-shield{display:grid!important;position:fixed!important}
 }
 
 @media(max-width:720px){
@@ -150,3 +150,4 @@ input,textarea,select{
     opacity:.06;
   }
 }
+
