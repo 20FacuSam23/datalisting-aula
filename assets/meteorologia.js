@@ -68,7 +68,7 @@ async function load(force=false){
  try{
    if(!force&&cached?.at&&Date.now()-cached.at<TTL){render(cached.payload,cached.at,true);return;}
    const ctrl=new AbortController();const timeout=setTimeout(()=>ctrl.abort(),15000);
-   let resp;try{resp=window.aulaApiFetch?await window.aulaApiFetch(`/education/${encodeURIComponent(window.aulaOrganization)}/nautical/forecast`,{signal:ctrl.signal}):await fetch(endpoint,{signal:ctrl.signal,headers:{Accept:"application/json"}});}finally{clearTimeout(timeout);}
+   let resp;try{resp=window.aulaApiFetch?await window.aulaApiFetch(`${window.aulaApiPath||("/education/"+encodeURIComponent(window.aulaOrganization))}/nautical/forecast`,{signal:ctrl.signal}):await fetch(endpoint,{signal:ctrl.signal,headers:{Accept:"application/json"}});}finally{clearTimeout(timeout);}
    if(!resp.ok)throw new Error("Respuesta "+resp.status);
    const payload=await resp.json();if(!payload.hourly?.time)throw new Error("Pronóstico incompleto");
    const at=Date.now();try{sessionStorage.setItem(cacheKey,JSON.stringify({payload,at}));}catch{}

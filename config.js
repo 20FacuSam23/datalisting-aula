@@ -1,1 +1,1 @@
-window.DATALISTING_AULA_CONFIG=Object.freeze({apiBaseUrl:"https://datalisting.info/api",organizationSlug:"demostracion",brandName:"Datalisting Aula"});
+window.DATALISTING_AULA_CONFIG={apiBaseUrl:'https://datalisting.info/api',portalSlug:'aula-generica',brandName:'Datalisting Aula'};
