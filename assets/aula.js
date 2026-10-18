@@ -91,3 +91,26 @@ $('identityForm').onsubmit=run(async e=>{await request(base+'/manage/settings',{
  banner.querySelector('button').onclick=()=>{window.aulaStudentPreview=false;document.body.classList.remove('student-preview');banner.hidden=true;setAccountUI(currentUser);show('administracion');};
  if(currentUser?.can_manage)start.hidden=false;
 })();
+
+/* Requisitos de contraseña en tiempo real. No lee ni envía contraseñas fuera del formulario. */
+(()=>{
+ if(window.dlPasswordFeedback)return;window.dlPasswordFeedback=true;
+ const upper=v=>/\p{Lu}/u.test(v),symbol=v=>/[\p{P}\p{S}]/u.test(v);
+ let counter=0;const registered=new WeakSet();
+ function setup(input){
+  if(registered.has(input)||input.autocomplete==='current-password')return;
+  if(input.type!=='password'||(!input.matches('[autocomplete="new-password"],[minlength]')))return;
+  registered.add(input);const confirmation=/confirmation/.test(input.name);
+  const list=document.createElement('ul');list.id='passwordChecks'+(++counter);list.className='password-checks';list.style.cssText='list-style:none;padding:6px 0;margin:0;font-size:13px;line-height:1.7;font-weight:400';
+  input.after(list);input.setAttribute('aria-describedby',((input.getAttribute('aria-describedby')||'')+' '+list.id).trim());
+  const rules=confirmation?['Las contraseñas coinciden']:['Al menos 6 caracteres','Una letra mayúscula','Un símbolo (por ejemplo !, # o %)'];
+  const rows=rules.map(text=>{const li=document.createElement('li');list.append(li);return {li,text,last:null};});
+  function render(){const v=input.value;const original=input.form?.querySelector('input[name="password"]');const values=confirmation?[!!v&&!!original&&v===original.value]:[Array.from(v).length>=6,upper(v),symbol(v)];
+   rows.forEach((row,i)=>{const state=v?(values[i]?'ok':'pending'):'empty';if(row.last===state)return;row.last=state;row.li.textContent=(state==='ok'?'✓ ':state==='pending'?'○ ':'○ ')+row.text+(state==='ok'?' · Cumplido':'');row.li.style.color=state==='ok'?'#167044':'#62516a';});
+   input.setCustomValidity(!v?'':values.every(Boolean)?'':confirmation?'Las contraseñas no coinciden.':'Usá al menos 6 caracteres, una mayúscula y un símbolo.');
+  }
+  input.addEventListener('input',render);input.form?.addEventListener('input',render);render();
+ }
+ function scan(root){if(root.matches?.('input'))setup(root);root.querySelectorAll?.('input[type="password"]').forEach(setup);}
+ scan(document);new MutationObserver(records=>records.forEach(r=>r.addedNodes.forEach(n=>{if(n.nodeType===1)scan(n);}))).observe(document.body,{childList:true,subtree:true});
+})();
