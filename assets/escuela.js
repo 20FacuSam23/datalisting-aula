@@ -1,0 +1,19 @@
+(() => {
+'use strict';
+const carousel=document.getElementById('socialCarousel');
+function social(posts=[]){
+ carousel.replaceChildren();
+ const clean=posts.filter(x=>/^https:\/\/www\.instagram\.com\/(p|reel)\/[A-Za-z0-9_-]+\/?$/.test(x)).slice(0,12);
+ const urls=clean.length?clean:['https://www.instagram.com/kayak_parana_club/'];
+ for(const url of urls){const slide=document.createElement('article');slide.className='social-slide';const frame=document.createElement('iframe');frame.title='Publicación de A Remarla';frame.loading='lazy';frame.referrerPolicy='strict-origin-when-cross-origin';frame.src=url.replace(/\/$/,'')+'/embed/';const a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noopener';a.textContent='Ver en el perfil de la escuela ↗';slide.append(frame,a);carousel.append(slide);}
+ const single=urls.length<2;document.getElementById('socialPrev').disabled=single;document.getElementById('socialNext').disabled=single;
+}
+social();window.addEventListener('aula-brand',e=>social(e.detail.instagram_posts||[]));
+for(const [id,dir]of [['socialPrev',-1],['socialNext',1]])document.getElementById(id).onclick=()=>carousel.scrollBy({left:dir*(carousel.firstElementChild?.getBoundingClientRect().width+24||420),behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'instant':'smooth'});
+const map=document.getElementById('riverMap');const views={map:['https://www.openstreetmap.org/export/embed.html?bbox=-60.525%2C-31.732%2C-60.483%2C-31.700&layer=mapnik&marker=-31.716%2C-60.504','Mapa de referencia del entorno del Thompson. Confirmá con la escuela el punto de encuentro.'],aerial:['https://maps.google.com/maps?q=-31.716,-60.504&z=15&t=k&output=embed','Vista aérea de referencia: las imágenes no son en tiempo real ni muestran el estado actual del río.'],radar:['https://embed.windy.com/embed2.html?lat=-31.716&lon=-60.504&detailLat=-31.716&detailLon=-60.504&zoom=7&level=surface&overlay=radar&product=radar&calendar=now&location=coordinates&metricWind=km%2Fh&metricTemp=%C2%B0C','Radar regional de precipitaciones. Consultá la hora de la imagen y la cobertura; la ausencia de datos no significa ausencia de lluvia.']};
+document.querySelectorAll('[data-map]').forEach(button=>button.onclick=()=>{const [url,text]=views[button.dataset.map];map.src=url;map.title=button.textContent+' · entorno de A Remarla';document.getElementById('mapExplanation').textContent=text;document.querySelectorAll('[data-map]').forEach(x=>x.setAttribute('aria-pressed',String(x===button)));});
+// Do not hide public services when the pointer enters an embedded map/profile.
+window.addEventListener('blur',()=>{if(!document.body.dataset.aulaPrivate){document.body.classList.remove('privacy-hidden');document.getElementById('privacyShield').setAttribute('aria-hidden','true');}});
+})();
+
+(async()=>{const box=document.getElementById('welcomeWeather');try{const r=await window.aulaApiFetch(window.aulaApiPath+'/nautical/forecast',{signal:AbortSignal.timeout(16000)});if(!r.ok)throw Error();const d=await r.json();const h=d.hourly;let i=h.time.findIndex(t=>Date.parse(t+'Z')>=Date.now()-2700000);if(i<0)throw Error();const grid=document.createElement('div');grid.className='weather-values';for(const [label,value,unit]of [['Viento',h.wind_speed_10m?.[i],'km/h'],['Ráfagas',h.wind_gusts_10m?.[i],'km/h'],['Temperatura',h.temperature_2m?.[i],'°C']]){const el=document.createElement('div');const strong=document.createElement('strong');strong.textContent=typeof value==='number'?value.toLocaleString('es-AR',{maximumFractionDigits:1})+' '+unit:'—';const caption=document.createElement('span');caption.textContent=label;el.append(strong,caption);grid.append(el);}box.replaceChildren(grid);const time=document.createElement('small');time.textContent='Hora prevista: '+new Date(h.time[i]+'Z').toLocaleString('es-AR');box.append(time);}catch{box.textContent='No se pudo consultar el pronóstico ahora. Podés volver a intentarlo en el panel meteorológico.';}})();
