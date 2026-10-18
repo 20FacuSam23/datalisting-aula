@@ -27,3 +27,28 @@ stop.onclick=()=>{end();status.textContent='Seguimiento detenido. La última pos
 document.querySelectorAll('[data-map]').forEach(b=>b.addEventListener('click',()=>{if(watch!==null){end();status.textContent='Seguimiento detenido al cambiar de mapa.';}}));
 window.addEventListener('pagehide',end);
 })();
+
+/* Portada simple y automatriculación del alumno. */
+(()=>{
+ const main=document.querySelector('main'),hero=document.querySelector('.hero[data-section=inicio]');
+ const services=document.querySelector('.welcome-grid')?.closest('section'),social=document.querySelector('.welcome-social')?.closest('section');
+ if(services&&hero)main.insertBefore(services,hero);if(social&&hero)main.insertBefore(social,hero);
+ document.querySelector('.school-shortcuts')?.remove();
+ document.querySelector('.public-services')?.setAttribute('hidden','');
+ document.getElementById('homeCourses')?.closest('section')?.setAttribute('hidden','');
+ const nav=document.querySelector('.topbar>nav');if(nav){nav.querySelectorAll('[data-view]').forEach(b=>{if(!b.hasAttribute('data-manager-only'))b.remove();});for(const [view,label]of [['inicio','La escuela'],['cursos','Entrar al aula']]){const b=document.createElement('button');b.className='nav';b.dataset.view=view;b.textContent=label;b.onclick=()=>show(view);nav.append(b);}}
+ const help=document.createElement('button');help.type='button';help.className='link';help.textContent='¿Necesitás ayuda para usar el aula?';help.onclick=()=>show('ayuda');document.querySelector('footer')?.append(help);
+ document.querySelectorAll('.hero .actions .ghost,.section-head>.link,.wx-teaser,.support-strip').forEach(x=>x.hidden=true);
+ const intro=document.querySelector('[data-section=cursos] .page-head p');if(intro)intro.textContent='Inscribite a una propuesta o continuá tus clases. La bienvenida es gratuita.';
+ const list=document.createElement('div');list.className='course-grid';list.id='enrollmentCourses';document.getElementById('allCourses').before(list);
+ const heading=document.createElement('h2');heading.textContent='Inscripciones';list.before(heading);
+ const myTitle=document.createElement('h2');myTitle.textContent='Mis cursos';document.getElementById('allCourses').before(myTitle);
+ let available=[];
+ async function refresh(){try{const d=await request(base+'/enrollment/courses');available=d.courses||[];list.replaceChildren();for(const c of available){const card=document.createElement('article');card.className='portal-card';const title=document.createElement('h3');title.textContent=c.name;const p=document.createElement('p');p.textContent=c.description;const badge=document.createElement('strong');badge.textContent=c.free?'Gratuito':'Curso arancelado';const b=document.createElement('button');b.className='primary';b.type='button';b.textContent=c.enrolled?'Entrar al curso':c.free?'Inscribirme gratis':'Consultar inscripción y pago';b.onclick=run(async()=>{if(!currentUser){openAuth();return;}if(c.enrolled)return openCourse(c.slug);if(!c.free){message('Este curso requiere pago confirmado. Consultá a la escuela para conocer el importe y completar la inscripción.');return;}b.disabled=true;try{await request(base+'/enrollment/courses/'+encodeURIComponent(c.slug),{method:'POST'});await loadCourses();await refresh();await openCourse(c.slug);}finally{b.disabled=false;}});card.append(badge,title,p,b);list.append(card);}}catch(e){list.textContent='La inscripción desde el aula estará disponible al instalar la actualización del servidor.';}}
+ const register=document.createElement('form');register.hidden=true;register.id='schoolRegisterForm';register.innerHTML='<h3>Crear mi cuenta de alumno</h3><label>Nombre<input name="name" required maxlength="200" autocomplete="name"></label><label>Correo electrónico<input name="email" type="email" required maxlength="255" autocomplete="email"></label><label>Contraseña (mínimo 12 caracteres)<input name="password" type="password" minlength="12" required autocomplete="new-password"></label><label>Repetir contraseña<input name="password_confirmation" type="password" minlength="12" required autocomplete="new-password"></label><p>Crear una cuenta no inscribe automáticamente en los cursos pagos.</p><button type="submit" class="auth-submit">Crear cuenta</button>';
+ const login=document.getElementById('loginForm');login.after(register);
+ const toggle=document.createElement('button');toggle.type='button';toggle.className='link';toggle.textContent='Soy nuevo · Crear mi cuenta';register.after(toggle);
+ toggle.onclick=()=>{register.hidden=!register.hidden;login.hidden=!register.hidden;toggle.textContent=register.hidden?'Soy nuevo · Crear mi cuenta':'Ya tengo cuenta · Ingresar';};
+ register.onsubmit=run(async e=>{await request(base+'/enrollment/register',{method:'POST',body:formObject(e.currentTarget)});document.getElementById('loginEmail').value=register.elements.email.value;register.reset();register.hidden=true;login.hidden=false;toggle.textContent='Soy nuevo · Crear mi cuenta';message('Cuenta creada. Ingresá y elegí Inscribirme gratis en la bienvenida.');document.getElementById('loginPassword').focus();});
+ const original=setAccountUI;setAccountUI=function(user){original(user);refresh();};refresh();
+})();
