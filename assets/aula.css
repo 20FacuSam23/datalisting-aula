@@ -150,3 +150,11 @@ input,textarea,select{
     opacity:.06;
   }
 }
+
+/* Formularios largos: desplazamiento dentro del cuadro, incluso con teclado móvil. */
+.auth-backdrop{height:100vh;height:100dvh;overflow-y:auto;overscroll-behavior:contain;align-items:center;padding:16px}
+.auth-card{min-height:0;max-height:calc(100vh - 32px);max-height:calc(100dvh - 32px);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;scrollbar-gutter:stable;scroll-padding:20px}
+.auth-card form,.auth-card label{min-width:0}
+.auth-card input[type=checkbox],.auth-card input[type=radio]{width:auto;flex:none;margin-top:5px}
+.auth-card .password-checks{font-size:13px;line-height:1.6}
+@media(max-width:600px),(max-height:700px){.auth-card{padding:24px 20px;border-radius:20px}.auth-card h2{font-size:28px}.auth-card>.school-logo{width:58px;height:58px;margin-bottom:10px}.auth-card form{gap:12px}}
