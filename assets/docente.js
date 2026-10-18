@@ -134,6 +134,7 @@ const originalManagement=loadManagement;loadManagement=async function(){await or
 const originalAccount=setAccountUI;setAccountUI=function(user){originalAccount(user);if(!user){task=null;host.replaceChildren();}};
 const originalLesson=openLesson;openLesson=function(id){
  originalLesson(id);const l=currentCourse?.lessons.find(x=>x.id===id);if(!l)return;const viewer=$('lessonViewer'),badge=document.createElement('p');badge.className='eyebrow';badge.textContent=l.lesson_type==='practice'?'CLASE PRÁCTICA':'CLASE TEÓRICA';viewer.prepend(badge);
+ if(Array.isArray(l.links)&&!(l.materials||[]).length){const empty=viewer.querySelector('.material-links');if(empty){if(empty.previousElementSibling?.textContent==='Materiales')empty.previousElementSibling.remove();empty.remove();}}
  const links=(l.links||[]).filter(u=>{try{return new URL(u).protocol==='https:';}catch{return false;}});
  if(links.length){const box=document.createElement('div');box.className='material-links';for(const u of links){const a=document.createElement('a');a.href=u;a.target='_blank';a.rel='noopener';a.textContent=u;box.append(a);}viewer.append(box);}
  if(currentUser&&!currentUser.can_manage&&!window.aulaStudentPreview&&(l.reflection_questions||[]).length){
