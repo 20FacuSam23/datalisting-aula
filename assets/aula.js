@@ -55,3 +55,27 @@ $('passwordForm').onsubmit=run(async e=>{await request(base+'/auth/password',{me
 
 $('identityForm').onsubmit=run(async e=>{await request(base+'/manage/settings',{method:'PUT',body:formObject(e.currentTarget)});await loadBrand();message('Identidad guardada.');});
 
+
+/* Opciones de lectura disponibles en todas las aulas. */
+(()=>{
+ const trigger=document.querySelector('.accessibility');if(!trigger)return;
+ const style=document.createElement('style');style.textContent=`
+ .reading-panel{position:fixed;right:16px;top:110px;z-index:120;width:min(340px,calc(100vw - 32px));max-height:70vh;overflow:auto;padding:22px;background:#fff;color:#201d22;border:2px solid var(--tenant-color,#665cf6);border-radius:20px;box-shadow:0 12px 50px #201d2230;font:16px/1.5 Arial,sans-serif}
+ .reading-panel h2{font-size:20px;margin:0 0 14px}.reading-panel button{padding:10px 14px;margin:4px;border:1px solid #bcaabc;border-radius:10px;background:#fff;color:#201d22;cursor:pointer;min-height:44px}.reading-panel button[aria-pressed=true]{background:#201d22;color:#fff}.reading-panel p{margin:10px 0}
+ html[data-reading-size="large"] body{font-size:21px}html[data-reading-size="large"] main p,html[data-reading-size="large"] .lesson-text,html[data-reading-size="large"] .course p{font-size:21px!important}
+ html[data-reading-size="largest"] body{font-size:24px}html[data-reading-size="largest"] main p,html[data-reading-size="largest"] .lesson-text,html[data-reading-size="largest"] .course p{font-size:24px!important}
+ html[data-reading-contrast="yes"] body,html[data-reading-contrast="yes"] main,html[data-reading-contrast="yes"] .portal-card,html[data-reading-contrast="yes"] .course{background:#fff!important;color:#111!important}
+ html[data-reading-contrast="yes"] main p,html[data-reading-contrast="yes"] main h1,html[data-reading-contrast="yes"] main h2,html[data-reading-contrast="yes"] main h3,html[data-reading-contrast="yes"] main small,html[data-reading-contrast="yes"] main span{color:#111!important}
+ html[data-reading-contrast="yes"] .hero-shell,html[data-reading-contrast="yes"] .river-visual,html[data-reading-contrast="yes"] .wx-header{background:#fff!important;color:#111!important;border:2px solid #111}
+ html[data-reading-motion="reduced"] *,html[data-reading-motion="reduced"] *::before,html[data-reading-motion="reduced"] *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+ `;document.head.append(style);
+ const panel=document.createElement('section');panel.className='reading-panel';panel.id='readingOptions';panel.hidden=true;panel.setAttribute('aria-label','Opciones de lectura');
+ panel.innerHTML='<h2>Opciones de lectura</h2><p>Tamaño del texto</p><div role="group" aria-label="Tamaño del texto"><button data-size="normal">Normal</button><button data-size="large">Grande</button><button data-size="largest">Muy grande</button></div><p><button data-contrast>Contraste reforzado</button></p><p><button data-motion>Reducir movimientos</button></p><button data-reset>Restablecer</button><button data-close>Cerrar</button><p role="status" id="readingStatus"></p>';
+ document.body.append(panel);let prefs={size:'normal',contrast:false,motion:false};try{Object.assign(prefs,JSON.parse(localStorage.getItem('aula-reading')||'{}'));}catch{}
+ function apply(){if(!['normal','large','largest'].includes(prefs.size))prefs.size='normal';document.documentElement.dataset.readingSize=prefs.size;document.documentElement.dataset.readingContrast=prefs.contrast?'yes':'no';document.documentElement.dataset.readingMotion=prefs.motion?'reduced':'normal';panel.querySelectorAll('[data-size]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.size===prefs.size)));panel.querySelector('[data-contrast]').setAttribute('aria-pressed',String(!!prefs.contrast));panel.querySelector('[data-motion]').setAttribute('aria-pressed',String(!!prefs.motion));try{localStorage.setItem('aula-reading',JSON.stringify(prefs));}catch{}}
+ function close(){panel.hidden=true;trigger.setAttribute('aria-expanded','false');trigger.focus();}
+ trigger.setAttribute('aria-controls',panel.id);trigger.setAttribute('aria-expanded','false');trigger.onclick=()=>{panel.hidden=!panel.hidden;trigger.setAttribute('aria-expanded',String(!panel.hidden));if(!panel.hidden)panel.querySelector('button').focus();};
+ panel.onclick=e=>{const b=e.target.closest('button');if(!b)return;if(b.hasAttribute('data-close'))return close();if(b.dataset.size)prefs.size=b.dataset.size;if(b.hasAttribute('data-contrast'))prefs.contrast=!prefs.contrast;if(b.hasAttribute('data-motion'))prefs.motion=!prefs.motion;if(b.hasAttribute('data-reset'))prefs={size:'normal',contrast:false,motion:false};apply();panel.querySelector('[role=status]').textContent='Preferencias de lectura aplicadas.';};
+ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!panel.hidden)close();});document.addEventListener('click',e=>{if(!panel.hidden&&!panel.contains(e.target)&&!trigger.contains(e.target)){panel.hidden=true;trigger.setAttribute('aria-expanded','false');}});
+ apply();
+})();
