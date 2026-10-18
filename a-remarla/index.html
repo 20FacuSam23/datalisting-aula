@@ -10,14 +10,14 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../assets/aula.css?v=20261017-2">
-  <link rel="stylesheet" href="../assets/meteorologia.css?v=20261017-2">
-<link rel="stylesheet" href="../assets/portal.css?v=20261017-2"></head>
+  <link rel="stylesheet" href="../assets/aula.css?v=20261018-publica1">
+  <link rel="stylesheet" href="../assets/meteorologia.css?v=20261018-publica1">
+<link rel="stylesheet" href="../assets/portal.css?v=20261018-publica1"><link rel="stylesheet" href="../assets/escuela.css?v=20261018-publica1"></head>
 <body>
   <div class="privacy-shield" id="privacyShield" aria-hidden="true">
     <div class="privacy-shield-card">
       <strong>Contenido protegido</strong>
-      <span>Volvé a Datalisting Aula para continuar.</span>
+      <span>Volvé a A Remarla para continuar.</span>
     </div>
   </div>
   <div class="privacy-watermark" id="privacyWatermark" aria-hidden="true"></div>
@@ -26,10 +26,10 @@
   <header class="topbar">
     <a class="brand" href="#" data-view="inicio">
       <span class="brand-mark"><i></i><i></i><i></i></span>
-      <span><img id="tenantLogo" alt="" hidden><b data-brand-name>A Remarla</b><small>AULA</small></span>
+      <span><img id="tenantLogo" alt="" hidden><b data-brand-name>A Remarla</b><small>ESCUELA · RÍO · COMUNIDAD</small></span>
     </a>
     <nav aria-label="Navegación principal"><button class="nav" data-view="administracion" data-manager-only hidden>Administrar aula</button>
-      <button class="nav active" data-view="inicio">Inicio</button>
+      <button class="nav active" data-view="inicio">La escuela</button><button class="nav" data-view="rio">El río y el lugar</button><button class="nav" data-view="comunidad">Nuestra comunidad</button>
       <button class="nav" data-view="cursos">Mis cursos</button>
       <button class="nav" data-view="ayuda">Ayuda</button>
       <button class="nav" data-view="meteorologia" data-nautical-only hidden>Meteorología</button>
@@ -51,31 +51,33 @@
     </div>
   </header>
 
-  <div id="portalMessage" class="portal-message" role="status" hidden></div><main id="contenido">
+  <div id="portalMessage" class="portal-message" role="status" hidden></div><main id="contenido"><div class="school-shortcuts"><button data-view="inicio">La escuela</button><button data-view="rio">Mapa y radar</button><button data-view="meteorologia">Servicios meteorológicos</button><button data-view="comunidad">Fotos y comunidad</button><button data-view="cursos">Ingresar al aula →</button></div>
     <section class="hero view" data-section="inicio">
       <div class="hero-shell">
         <div class="hero-copy">
-          <span class="eyebrow light">TU ESPACIO DE APRENDIZAJE</span>
+          <span class="eyebrow light">A REMARLA · PARANÁ</span>
           <h1>Aprender, remar<br><span>y compartir el río.</span></h1>
-          <p>Tu escuela, tus clases y las condiciones previstas del río, en un mismo espacio.</p>
+          <p>Conocé la escuela, descubrí nuestras propuestas y prepará tu próximo encuentro con el río.</p>
           <div class="actions">
-            <button class="primary" data-view="cursos">Seguir aprendiendo <b>→</b></button>
-            <button class="ghost" data-view="ayuda">Necesito ayuda</button>
+            <button class="primary" data-view="cursos">Ingresar al aula <b>→</b></button>
+            <a class="ghost" href="https://www.instagram.com/kayak_parana_club/" target="_blank" rel="noopener">Consultar actividades ↗</a>
           </div>
-          <div class="hero-meta">
+          <div class="hero-meta" data-private-stats>
             <div><strong>0</strong><span>Cursos disponibles</span></div>
             <div><strong>0</strong><span>Clases completadas</span></div>
             <div><strong>0</strong><span>Clases pendientes</span></div>
           </div>
         </div>
 
-        <div class="visual-stage"><article class="next-card portal-next"><span class="eyebrow">CONTINUÁ A TU RITMO</span><h2 id="nextCourseTitle">Tu próxima clase comienza acá</h2><p id="nextCourseDescription">Ingresá para ver tus cursos y materiales.</p><button type="button" class="primary" id="continueCourse" disabled>Abrir curso →</button></article></div>
+        <div class="visual-stage river-visual"><div class="river-contours" aria-hidden="true">≈</div><span class="river-kicker">EL RÍO NOS ENCUENTRA</span><h2>Un lugar.<br>Muchas formas<br>de vivirlo.</h2><div class="river-quick"><button data-view="rio">Explorar el lugar ↗</button><button data-view="meteorologia">Consultar el clima ↗</button></div><article class="portal-next" hidden><h2 id="nextCourseTitle"></h2><p id="nextCourseDescription"></p><button id="continueCourse" disabled>Abrir curso</button></article></div>
       </div>
     </section>
 
+<section class="section view" data-section="inicio"><div class="section-head"><div><span class="eyebrow">ANTES DE ENCONTRARNOS</span><h2>El lugar y las condiciones.</h2></div><button class="link" data-view="rio">Explorar mapa y radar →</button></div><div class="welcome-grid"><article class="welcome-map"><iframe title="Entorno del río en Paraná" loading="lazy" src="https://www.openstreetmap.org/export/embed.html?bbox=-60.525%2C-31.732%2C-60.483%2C-31.700&amp;layer=mapnik&amp;marker=-31.716%2C-60.504"></iframe><p>Entorno del Balneario Thompson · ubicación aproximada.</p></article><article class="public-wx"><span class="eyebrow">PRONÓSTICO DEL ENTORNO</span><h3>Prepará tu encuentro con el río.</h3><div id="welcomeWeather">Consultando condiciones previstas…</div><button class="primary" data-view="meteorologia">Ver pronóstico por hora →</button><p>No representa una medición en la costa. Confirmá las condiciones con la escuela.</p></article></div></section><section class="section view" data-section="inicio"><div class="section-head"><div><span class="eyebrow">NUESTRA COMUNIDAD</span><h2>Momentos de A Remarla.</h2><p>Conocé la escuela a través de sus publicaciones.</p></div><button class="link" data-view="comunidad">Recorrer publicaciones →</button></div><div class="welcome-social"><iframe title="Publicaciones de la escuela A Remarla" src="https://www.instagram.com/kayak_parana_club/embed/" loading="lazy"></iframe><div><h3>Hay un río por descubrir.<br>Y una comunidad para compartirlo.</h3><p>Consultá las novedades, las actividades y los encuentros en el perfil de la escuela.</p><a class="primary" href="https://www.instagram.com/kayak_parana_club/" target="_blank" rel="noopener">Ver fotos y novedades ↗</a><p class="embed-note">Si Instagram no muestra las fotos aquí, abrí el perfil.</p></div></div></section>
+    <section class="section view public-services" data-section="inicio"><span class="eyebrow">VIVÍ A REMARLA</span><h2>Tu próxima experiencia empieza acá.</h2><div class="service-grid"><article><span>01 / ESCUELA</span><h3>Aprender en el río</h3><p>Conocé la propuesta de formación y consultá niveles, cupos y horarios con la escuela.</p><button data-view="cursos">Explorar cursos →</button></article><article><span>02 / ENCUENTROS</span><h3>Remar y compartir</h3><p>Consultá las actividades y salidas que organiza nuestra comunidad.</p><a href="https://www.instagram.com/kayak_parana_club/" target="_blank" rel="noopener">Consultar propuestas ↗</a></article><article><span>03 / ANTES DE SALIR</span><h3>Conocer las condiciones</h3><p>Ubicá el entorno, revisá el pronóstico y consultá con la escuela antes de planificar una salida.</p><button data-view="rio">Mapa y servicios →</button></article></div></section>
     <section class="section view" data-section="inicio">
       <div class="section-head">
-        <div><span class="eyebrow">CONTINUÁ TU CAMINO</span><h2>Tus cursos</h2><p>Todo organizado para que sepas siempre cuál es el próximo paso.</p></div>
+        <div><span class="eyebrow">APRENDER CON A REMARLA</span><h2>La propuesta de formación</h2><p>Conocé los cursos. Para entrar a las clases y documentos, ingresá con tu cuenta.</p></div>
         <button class="link" data-view="cursos">Ver todos <span>→</span></button>
       </div>
       <div class="course-grid" id="homeCourses"></div>
@@ -87,8 +89,10 @@
       </div>
     </section>
 
+<section class="section view hidden" data-section="rio"><div class="page-head"><span class="eyebrow">NUESTRO ENTORNO</span><h1>Nos encontramos junto al río.</h1><p>Referencia aproximada del entorno del Balneario Thompson, Paraná. Confirmá el punto de encuentro con la escuela.</p></div><div class="map-tabs"><button data-map="map" aria-pressed="true">Mapa</button><button data-map="aerial" aria-pressed="false">Vista aérea</button><button data-map="radar" aria-pressed="false">Radar de lluvia</button></div><iframe id="riverMap" title="Mapa del entorno del Balneario Thompson" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" src="https://www.openstreetmap.org/export/embed.html?bbox=-60.525%2C-31.732%2C-60.483%2C-31.700&amp;layer=mapnik&amp;marker=-31.716%2C-60.504"></iframe><p id="mapExplanation">Mapa de referencia. No representa corrientes ni condiciones de navegación.</p><a href="https://www.google.com/maps/search/?api=1&amp;query=Balneario+Thompson+Parana" target="_blank" rel="noopener">Abrir ubicación y cómo llegar ↗</a><div class="river-weather-callout"><h2>El clima también es parte del recorrido.</h2><p>Consultá viento, ráfagas, temperatura y lluvia prevista por hora.</p><button class="primary" data-view="meteorologia">Abrir servicios meteorológicos →</button></div><p class="embed-note">La vista aérea no es una transmisión en vivo. El radar depende de la cobertura disponible y conserva la hora indicada por su servicio. Si una vista no carga, usá el mapa o el panel meteorológico.</p></section>
+<section class="section view hidden" data-section="comunidad"><div class="page-head"><span class="eyebrow">MOMENTOS QUE NOS UNEN</span><h1>La escuela, en movimiento.</h1><p>Publicaciones de nuestra comunidad. Deslizá para recorrerlas.</p></div><div class="social-controls"><button id="socialPrev" aria-label="Publicación anterior">←</button><button id="socialNext" aria-label="Publicación siguiente">→</button><a href="https://www.instagram.com/kayak_parana_club/" target="_blank" rel="noopener">Ver todas las publicaciones ↗</a></div><div id="socialCarousel" class="social-carousel" aria-label="Publicaciones de A Remarla"></div><p class="embed-note">Si las publicaciones no aparecen, abrí el perfil de la escuela. Su disponibilidad depende de la configuración de Instagram y del navegador.</p></section>
     <section class="section view hidden" data-section="cursos">
-      <div class="page-head"><span class="eyebrow">MI APRENDIZAJE</span><h1>Mis cursos</h1><p>Tu biblioteca personal de aprendizaje. Elegí un curso y continuá desde donde quedaste.</p></div>
+      <div class="page-head"><span class="eyebrow">MI APRENDIZAJE</span><h1>Cursos y aula</h1><p>Tu biblioteca personal de aprendizaje. Elegí un curso y continuá desde donde quedaste.</p></div>
       <div class="course-grid" id="allCourses"></div>
     </section>
 
@@ -185,7 +189,7 @@
         </aside>
       </div>
     </section>
-<section class="section view hidden" data-section="administracion"><div class="page-head"><span class="eyebrow">ADMINISTRACIÓN DE TU ESCUELA</span><h1>Cursos, materiales y alumnos</h1><p>Los cambios se guardan en Datalisting. Solo se muestran datos de este portal.</p></div><div class="portal-admin-grid"><article class="portal-card"><h2>Identidad de tu escuela</h2><form id="identityForm"><label>Nombre<input name="name" required></label><label>Presentación<textarea name="tagline" maxlength="500"></textarea></label><label>Color principal<input name="primary_color" type="color" value="#148d91"></label><label>Logotipo (enlace HTTPS)<input name="logo_url" type="url"></label><button class="primary">Guardar identidad</button></form></article>
+<section class="section view hidden" data-section="administracion"><div class="page-head"><span class="eyebrow">ADMINISTRACIÓN DE TU ESCUELA</span><h1>Cursos, materiales y alumnos</h1><p>Los cambios se guardan en Datalisting. Solo se muestran datos de este portal.</p></div><div class="portal-admin-grid"><article class="portal-card"><h2>Identidad de tu escuela</h2><form id="identityForm"><label>Nombre<input name="name" required></label><label>Presentación<textarea name="tagline" maxlength="500"></textarea></label><label>Color principal<input name="primary_color" type="color" value="#148d91"></label><label>Logotipo (enlace HTTPS)<input name="logo_url" type="url"></label><button class="primary">Guardar identidad</button><label>Publicaciones para el carrusel (una dirección de publicación de Instagram por línea)<textarea name="instagram_posts" rows="4" placeholder="https://www.instagram.com/p/..."></textarea></label></form></article>
 <article class="portal-card"><h2>1 · Curso</h2><label>Elegí un curso<select id="manageCourse"><option value="">Nuevo curso</option></select></label><form id="courseForm"><label>Nombre<input name="name" required maxlength="255"></label><label>Identificador<input name="slug" pattern="[a-z0-9]+(-[a-z0-9]+)*" required maxlength="100"></label><label>Descripción<textarea name="description" maxlength="5000"></textarea></label><label><input type="checkbox" name="active" checked>Activo</label><label><input name="preview" type="checkbox">Mostrar este curso como muestra pública (incluye texto y enlaces de sus clases)</label><button class="primary">Guardar curso</button></form></article>
 <article class="portal-card"><h2>2 · Clases</h2><label>Elegí una clase<select id="manageLesson"><option value="">Nueva clase</option></select></label><form id="lessonForm"><label>Título<input name="title" required maxlength="255"></label><label>Descripción<textarea name="description" maxlength="5000"></textarea></label><label>Contenido de la clase<textarea name="content" rows="8" maxlength="100000"></textarea></label><div class="portal-two"><label>Orden<input name="sort_order" type="number" min="0" value="0" required></label><label>Duración estimada (minutos)<input name="duration_minutes" type="number" min="1" max="1440"></label></div><label><input type="checkbox" name="active" checked>Activa</label><button class="primary">Guardar clase</button></form></article>
 <article class="portal-card"><h2>3 · Material privado</h2><p>Elegí un curso y una clase guardados. Cargá un archivo o un enlace HTTPS.</p><form id="materialForm"><label>Título<input name="title" required maxlength="255"></label><label>Archivo (hasta 20 MB)<input name="file" type="file"></label><label>Enlace alternativo<input name="external_url" type="url" placeholder="https://"></label><button class="primary">Agregar material</button></form></article>
@@ -214,8 +218,9 @@
   </div>
 
   <footer><div class="footer-brand"><span class="brand-mark"><i></i><i></i><i></i></span><b data-brand-name>Datalisting Aula</b></div><p>La tecnología a tu servicio, y no al revés.</p><small>Accesibilidad · Privacidad · Ayuda</small></footer>
-  <script src="config.js?v=20261017-2"></script>
-  <script src="../assets/aula.js?v=20261017-2"></script>
-  <script src="../assets/meteorologia.js?v=20261017-2"></script>
-</body>
+  <script src="config.js?v=20261018-publica1"></script>
+  <script src="../assets/aula.js?v=20261018-publica1"></script>
+  <script src="../assets/meteorologia.js?v=20261018-publica1"></script>
+<script src="../assets/escuela.js?v=20261018-publica1"></script></body>
 </html>
+
