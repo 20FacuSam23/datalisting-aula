@@ -43,9 +43,17 @@ async function dashboard(){
  host.innerHTML='<div class="teacher-actions"></div><div class="teacher-list"><h2>Preparaciones guardadas</h2><p>El paso 1 guarda una preparación privada para retomarla después.</p><div id="teacherDrafts"></div></div>';
  const actions=host.querySelector('.teacher-actions');
  for(const [label,fn] of [['Crear clase',()=>classStep1()],['Mis cursos',myCourses],['Alumnos',()=>studentStep1()],['Mi escuela',()=>schoolStep1()]])actions.append(btn(label,fn,label==='Crear clase'));
+ if(brand.recovery_available&&!window.aulaDemo.active)actions.append(btn('Recuperar accesos',recoverStudents));
  const list=host.querySelector('#teacherDrafts');
  try{const d=await request(base+'/manage/guided/drafts');if(!d.drafts.length)list.textContent='No hay preparaciones pendientes.';for(const x of d.drafts){const row=document.createElement('article');row.className='teacher-row';const title=document.createElement('strong');title.textContent=x.title;row.append(title,btn('Retomar →',async()=>{const r=await request(base+'/manage/guided/drafts/'+x.id);task={kind:'class',course:r.draft.course_slug,draft:r.draft,lesson:r.draft.lesson_id?{id:r.draft.lesson_id}:null};classStep2();}));list.append(row);}}
  catch{list.textContent='Para usar la guía de documentos, instalá la actualización del aula en el servidor.';}
+}
+async function recoverStudents(){
+ await refresh();frame('Recuperar accesos de alumnos',1,'Elegí la cuenta. El enlace vence a los 30 minutos y cierra las sesiones anteriores al cambiar la contraseña.');body('<div id="recoveryStudents"></div>');
+ const list=host.querySelector('#recoveryStudents');if(!management.students.length)list.textContent='Todavía no hay cuentas de alumnos.';
+ for(const student of management.students){const row=document.createElement('article');row.className='portal-card';const title=document.createElement('h3');title.textContent=student.name+' · '+student.email;row.append(title);const result=document.createElement('p');result.setAttribute('role','status');
+  for(const [channel,label] of [['email','Enviar por correo'],['whatsapp','Preparar WhatsApp']]){const b=btn(label,async()=>{const data=await request(base+'/manage/accounts/'+student.id+'/recovery',{method:'POST',body:{channel,purpose:'reset'}});result.replaceChildren();const text=document.createElement('span');text.textContent=data.email_sent?'Correo enviado.':'Enlace privado preparado; entregalo a este alumno.';result.append(text);const a=document.createElement('a');a.textContent=data.whatsapp_url?'Abrir WhatsApp':'Abrir enlace privado';a.href=data.whatsapp_url||data.url;a.target='_blank';a.rel='noopener noreferrer';result.append(document.createElement('br'),a);});if(channel==='whatsapp'&&!student.phone){b.disabled=true;b.title='El dueño debe guardar primero el número en Matriz → Accesos.';}row.append(b);}row.append(result);list.append(row);
+ }
 }
 async function myCourses(){
  await refresh();frame('Mis cursos',1,'Elegí un curso para organizar sus clases.');body('<div id="teacherCourseList"></div>');host.querySelector('.teacher-buttons').append(btn('+ Crear curso',()=>courseStep1(null),true));
