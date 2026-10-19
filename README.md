@@ -18,3 +18,11 @@ Los ejemplos están identificados como contenido ilustrativo. No son instruccion
 La identidad es configurable. No se incluye un logotipo oficial obtenido de Instagram. El control de acceso protege los archivos; la marca de agua y el desenfoque no impiden capturas de un usuario autorizado.
 
 Las evaluaciones y certificaciones formales continúan disponibles en los módulos educativos del sistema para organizaciones incorporadas. El recorrido de prospecto permite clases, materiales e inscripción y progreso; no emite certificados formales.
+
+## Muestras y recuperación de accesos
+
+La actualización de accesos habilita «Entrar a la muestra · sin claves» solo cuando el backend confirma que el portal no tiene cuentas ni contenido propio. El recorrido usa ejemplos en memoria, no genera tokens y no modifica datos del servidor. Las cuentas reales mantienen su autenticación.
+
+«Olvidé mi contraseña» recupera la cuenta del portal por correo. Matriz dispone de `/matriz/accesos` para todos los niveles y los profesores pueden recuperar el acceso de sus alumnos. Los enlaces duran 30 minutos y se usan una sola vez; WhatsApp se prepara desde administración para el número registrado. Las nuevas altas públicas del aula confirman su correo antes de acceder a clases privadas.
+
+Validación del recorrido de muestra: `node --test tests/demo.test.cjs`.
