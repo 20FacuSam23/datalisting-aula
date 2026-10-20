@@ -12,7 +12,17 @@ const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;
 const token=()=>sessionStorage.getItem(tokenKey);
 async function apiFetch(path,options={}){const headers=new Headers(options.headers||{});headers.set('Accept','application/json');if(token())headers.set('Authorization','Bearer '+token());return fetch(apiBaseUrl+path,{...options,headers,cache:'no-store'});}
 window.aulaApiFetch=apiFetch;window.aulaOrganization=organizationSlug;
-async function request(path,options={}){if(window.aulaStudentPreview&&!['GET','HEAD'].includes(String(options.method||'GET').toUpperCase()))throw Error('La vista previa es de solo lectura. Volvé a administración para guardar cambios.');if(options.body&&!(options.body instanceof FormData)){options.headers={...options.headers,'Content-Type':'application/json'};options.body=JSON.stringify(options.body);}const r=await apiFetch(path,options);const d=await r.json().catch(()=>({}));if(!r.ok){if(r.status===401){sessionStorage.removeItem(tokenKey);setAccountUI(null);openAuth();}throw Error(Object.values(d.errors||{}).flat()[0]||d.message||`No se pudo completar la operación (${r.status}).`);}return d;}
+async function request(path,options={}){if(window.aulaStudentPreview&&!['GET','HEAD'].includes(String(options.method||'GET').toUpperCase()))throw Error('La vista previa es de solo lectura. Volvé a administración para guardar cambios.');if(options.body&&!(options.body instanceof FormData)){options.headers={...options.headers,'Content-Type':'application/json'};options.body=JSON.stringify(options.body);}const r=await apiFetch(path,options);const d=await r.json().catch(()=>({}));if(!r.ok){
+ if(r.status===429){
+  const retryHeader=Number(r.headers.get('Retry-After')),retryJson=Number(d.retry_after);
+  const seconds=Math.min(600,Math.max(1,Math.ceil(retryHeader>0?retryHeader:retryJson>0?retryJson:60)));
+  const error=new Error('Hay un bloqueo temporal de seguridad. Esperá '+seconds+' segundos antes de intentar de nuevo.');
+  error.status=429;error.retryAfter=seconds;throw error;
+ }
+ if(r.status===401){sessionStorage.removeItem(tokenKey);setAccountUI(null);openAuth();}
+ const error=new Error(Object.values(d.errors||{}).flat()[0]||d.message||`No se pudo completar la operación (${r.status}).`);
+ error.status=r.status;throw error;
+}return d;}
 function message(text,error=false){const box=$('portalMessage');box.textContent=text;box.className=error?'portal-message error':'portal-message';box.hidden=false;}
 function run(fn){return async e=>{if(e?.type==='submit')e.preventDefault();const button=e?.submitter;if(button)button.disabled=true;const event=e?{currentTarget:e.currentTarget,target:e.target,submitter:e.submitter,type:e.type,preventDefault:()=>e.preventDefault()}:undefined;try{await fn(event);}catch(error){message(error.message,true);}finally{if(button)button.disabled=false;}};}
 function show(view){if(config.publicLanding&&!currentUser&&['curso','cuenta'].includes(view)){openAuth();return;}if(view==='administracion'&&!currentUser?.can_manage)return;if(view==='meteorologia'&&!brand.nautical)return;document.body.dataset.aulaPrivate=['curso','administracion','cuenta'].includes(view)?'yes':'';document.querySelectorAll('.view').forEach(e=>e.classList.toggle('hidden',e.dataset.section!==view));document.querySelectorAll('.nav').forEach(e=>e.classList.toggle('active',e.dataset.view===view));window.scrollTo({top:0,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});}
@@ -38,7 +48,34 @@ function formObject(f){return Object.fromEntries(new FormData(f));}
 document.addEventListener('click',run(async e=>{const target=e.target.closest('button,a');if(!target)return;if(target.dataset.course)await openCourse(target.dataset.course);if(target.dataset.openLesson)openLesson(Number(target.dataset.openLesson));if(target.dataset.material)await material(Number(target.dataset.material));if(target.dataset.completeLesson){await request(base+'/learning/courses/'+encodeURIComponent(currentCourse.slug)+'/lessons/'+target.dataset.completeLesson+'/complete',{method:'POST'});await openCourse(currentCourse.slug);await loadCourses();message('Clase completada.');}if(target.id==='certificateButton'){const r=await apiFetch(base+'/learning/courses/'+encodeURIComponent(currentCourse.slug)+'/certificate');if(!r.ok)throw Error('Certificado no disponible.');const u=URL.createObjectURL(await r.blob());window.open(u,'_blank','noopener');setTimeout(()=>URL.revokeObjectURL(u),60000);}}));
 document.querySelectorAll('[data-view]').forEach(el=>el.addEventListener('click',run(async e=>{e.preventDefault();if(el.dataset.view==='administracion')await loadManagement();else if(config.publicLanding&&el.dataset.view==='cursos'&&!currentUser)openAuth();else show(el.dataset.view);})));$('courseBack').onclick=()=>show('cursos');$('assessmentButton').onclick=run(assessment);
 $('profileButton').onclick=()=>{if(!currentUser)return openAuth();$('accountMenu').classList.toggle('hidden');$('profileButton').setAttribute('aria-expanded',String(!$('accountMenu').classList.contains('hidden')));};$('accountCourses').onclick=()=>{show('cursos');$('accountMenu').classList.add('hidden');};$('accountProfile').onclick=()=>{if(prospect&&!currentUser.is_matrix){$('passwordCard').hidden=false;show('cuenta');}else message(currentUser.name+' · '+currentUser.email);$('accountMenu').classList.add('hidden');};$('accountLogout').onclick=run(async()=>{try{await request(base+'/auth/logout',{method:'POST'});}finally{sessionStorage.removeItem(tokenKey);setAccountUI(null);renderCourses([]);$('courseLessons').replaceChildren();$('lessonViewer').replaceChildren();$('accountMenu').classList.add('hidden');if(brand.public_preview){closeAuth();await loadCourses();show('inicio');}else openAuth();}});
-$('authClose').onclick=closeAuth;$('loginForm').onsubmit=run(async e=>{try{const d=await request(base+'/auth/login',{method:'POST',body:{email:$('loginEmail').value.trim(),password:$('loginPassword').value}});sessionStorage.setItem(tokenKey,d.token);setAccountUI(d.user);e.currentTarget.reset();closeAuth();if(d.user.must_change_password&&prospect){$('passwordCard').hidden=false;show('cuenta');message('Elegí una contraseña propia para continuar.');return;}await loadCourses();show('cursos');}catch(error){$('authError').textContent=error.message;$('authError').classList.remove('hidden');}});
+$('authClose').onclick=closeAuth;/* Una respuesta 429 nunca dispara nuevos intentos: respetamos Retry-After. */
+let loginCooldownUntil=0,loginCooldownTimer=null;
+function waitLogin(seconds){
+ const button=$('loginForm').querySelector('[type="submit"]');
+ const label=button.dataset.originalLabel||button.textContent;
+ button.dataset.originalLabel=label;
+ loginCooldownUntil=Date.now()+seconds*1000;
+ if(loginCooldownTimer)clearInterval(loginCooldownTimer);
+ function update(){
+  const remaining=Math.max(0,Math.ceil((loginCooldownUntil-Date.now())/1000));
+  if(remaining){button.disabled=true;button.textContent='Reintentar en '+remaining+' s';}
+  else{clearInterval(loginCooldownTimer);loginCooldownTimer=null;button.disabled=false;button.textContent=label;}
+ }
+ update();loginCooldownTimer=setInterval(update,1000);
+}
+$('loginForm').onsubmit=run(async e=>{
+ if(Date.now()<loginCooldownUntil)return;
+ try{
+  const d=await request(base+'/auth/login',{method:'POST',body:{email:$('loginEmail').value.trim(),password:$('loginPassword').value}});
+  sessionStorage.setItem(tokenKey,d.token);setAccountUI(d.user);e.currentTarget.reset();closeAuth();
+  if(d.user.must_change_password&&prospect){$('passwordCard').hidden=false;show('cuenta');message('Elegí una contraseña propia para continuar.');return;}
+  await loadCourses();show('cursos');
+ }catch(error){
+  $('authError').textContent=error.message;
+  $('authError').classList.remove('hidden');
+  if(error.retryAfter)waitLogin(error.retryAfter);
+ }
+});
 $('manageCourse').onchange=run(selectManageCourse);$('manageLesson').onchange=()=>{const l=currentCourse?.lessons.find(l=>l.id===Number($('manageLesson').value));$('lessonForm').reset();if(l)for(const k of ['title','description','content','sort_order','duration_minutes'])$('lessonForm').elements[k].value=l[k]??'';$('lessonForm').elements.active.checked=l?l.active:true;};
 $('courseForm').onsubmit=run(async e=>{const d=formObject(e.currentTarget);d.active=e.currentTarget.elements.active.checked;d.preview=e.currentTarget.elements.preview?.checked||false;const slug=$('manageCourse').value;const response=await request(base+'/manage/courses'+(slug?'/'+encodeURIComponent(slug):''),{method:slug?'PUT':'POST',body:d});await loadManagement();$('manageCourse').value=response.course.slug;await selectManageCourse();message('Curso guardado.');});
 $('lessonForm').onsubmit=run(async e=>{if(!currentCourse)throw Error('Guardá o elegí un curso primero.');const d=formObject(e.currentTarget);d.active=e.currentTarget.elements.active.checked;d.duration_minutes=d.duration_minutes||null;const id=$('manageLesson').value;await request(base+'/manage/courses/'+encodeURIComponent(currentCourse.slug)+'/lessons'+(id?'/'+id:''),{method:id?'PUT':'POST',body:d});await selectManageCourse();message('Clase guardada.');});
@@ -49,7 +86,7 @@ $('nauticalForm').onsubmit=run(async e=>{await request(base+'/manage/nautical',{
 // Local deterrents complement server authorization; screenshots cannot be prohibited by a browser.
 const privacyHidden=hidden=>{if(config.publicLanding&&!document.body.dataset.aulaPrivate)hidden=false;document.body.classList.toggle('privacy-hidden',hidden);$('privacyShield').setAttribute('aria-hidden',String(!hidden));};window.addEventListener('blur',()=>privacyHidden(true));window.addEventListener('focus',()=>privacyHidden(false));document.addEventListener('visibilitychange',()=>privacyHidden(document.hidden));window.addEventListener('pageshow',()=>privacyHidden(false));
 document.querySelectorAll('.help aside button').forEach((button,i)=>button.onclick=()=>message(['Entrá en Mis cursos, elegí una tarjeta y tocá Abrir en una clase.','Dentro de una clase, la sección Materiales permite abrir enlaces o descargar los documentos habilitados.','Usá la cuenta de esta escuela. Si la clave es temporal, el aula te pedirá cambiarla aquí; si la olvidaste, contactá al administrador.','Pedí ayuda al responsable de tu escuela por sus canales habituales.'][i]));
-(async()=>{await loadBrand();setAccountUI(null);if(!token()){if(brand.public_preview||config.publicLanding){await loadCourses();if(!config.publicLanding)message('Recorrido de muestra. Ingresá para administrar o guardar tu avance.');return;}return openAuth();}try{const d=await request(base+'/auth/me');setAccountUI(d.user);if(d.user.must_change_password&&prospect){$('passwordCard').hidden=false;return show('cuenta');}await loadCourses();}catch{sessionStorage.removeItem(tokenKey);openAuth();}})();
+(async()=>{await loadBrand();setAccountUI(null);if(!token()){if(brand.public_preview||config.publicLanding){await loadCourses();if(!config.publicLanding)message('Recorrido de muestra. Ingresá para administrar o guardar tu avance.');return;}return openAuth();}try{const d=await request(base+'/auth/me');setAccountUI(d.user);if(d.user.must_change_password&&prospect){$('passwordCard').hidden=false;return show('cuenta');}await loadCourses();}catch(error){sessionStorage.removeItem(tokenKey);openAuth();if(error.status===401)$('authError').textContent='Tu sesión venció. Volvé a ingresar con tu cuenta.';else if(error.status===429)$('authError').textContent=error.message;else $('authError').textContent='No se pudo recuperar la sesión. Volvé a ingresar.';$('authError').classList.remove('hidden');if(error.retryAfter)waitLogin(error.retryAfter);}})();
 
 $('passwordForm').onsubmit=run(async e=>{await request(base+'/auth/password',{method:'POST',body:formObject(e.currentTarget)});e.currentTarget.reset();const d=await request(base+'/auth/me');setAccountUI(d.user);await loadCourses();show('inicio');message('Contraseña actualizada.');});
 
