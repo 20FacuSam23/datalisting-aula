@@ -1,0 +1,30 @@
+.nautical-plan{--plan-ink:#30232f;--plan-muted:#6b5a68;border:1px solid #e7d7e3;border-radius:26px;background:#fff;overflow:hidden;color:var(--plan-ink);margin-block:20px}
+.nautical-plan[hidden]{display:none!important}.nautical-plan *{box-sizing:border-box}
+.nautical-plan-head{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;padding:26px 26px 6px}
+.nautical-plan-kicker{font-size:11px;font-weight:800;letter-spacing:.12em;color:#90387e}
+.nautical-plan h2{font-size:clamp(23px,3vw,32px);line-height:1.15;margin:10px 0}
+.nautical-plan-head p{margin:0;line-height:1.6;color:var(--plan-muted)}
+.nautical-plan-badge{flex:none;border:1px solid #e8d2ad;border-radius:999px;padding:9px 12px;font-size:12px;font-weight:700;color:#775217;background:#fff9ed}
+.nautical-plan-sectors{display:flex;gap:8px;flex-wrap:wrap;padding:20px 26px}
+.nautical-plan button{font:inherit;cursor:pointer;min-height:44px;border:1px solid #dec8d9;border-radius:12px;background:#fff;color:#713264;padding:10px 14px;font-size:14px;font-weight:700;line-height:1.25}
+.nautical-plan button[aria-pressed=true]{background:#a33f91;color:white;border-color:#a33f91}
+.nautical-plan button[data-sector=c1][aria-pressed=true],.nautical-plan button[data-sector=c2][aria-pressed=true],.nautical-plan button[data-sector=crossings][aria-pressed=true]{background:#ffe17b;color:#463716;border-color:#d3af3c}
+.nautical-plan button:disabled{opacity:.4;cursor:default}.nautical-plan button:focus-visible,.nautical-plan summary:focus-visible,.nautical-plan svg:focus-visible{outline:3px solid #a33f91;outline-offset:3px}
+.nautical-plan-canvas{margin:0 26px;border-radius:16px;border:1px solid #e2d9dd;overflow:hidden;background:#c7b495}
+.nautical-plan svg{display:block;width:100%;height:auto;aspect-ratio:906/511;touch-action:none;cursor:grab;user-select:none}
+.nautical-plan svg:active{cursor:grabbing}
+.nautical-plan-controls{display:flex;align-items:center;gap:10px;padding:16px 26px 0;flex-wrap:wrap}
+.nautical-plan-controls button[data-zoom=in],.nautical-plan-controls button[data-zoom=out]{font-size:23px;min-width:46px;padding:5px 10px}
+.nautical-plan output{min-width:56px;text-align:center;font-size:14px;font-variant-numeric:tabular-nums}
+.nautical-plan-help,.nautical-plan-status{margin:12px 26px;font-size:13px;line-height:1.6;color:var(--plan-muted)}
+.nautical-plan-status{color:#493342;min-height:22px}
+.nautical-plan-legend{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:20px 26px}
+.nautical-plan-legend>div{display:flex;align-items:flex-start;gap:12px;border:1px solid #e8e0e5;border-radius:14px;padding:14px;background:#fcfafc}
+.nautical-plan-legend .nautical-plan-remo,.nautical-plan-legend .nautical-plan-crossing{background:#fffbee;border-color:#e9d89c}
+.nautical-plan-legend b,.nautical-plan-legend small{display:block}.nautical-plan-legend b{font-size:14px;line-height:1.4}.nautical-plan-legend small{font-size:12px;line-height:1.5;color:var(--plan-muted);margin-top:3px}
+.nautical-plan-legend i{display:block;flex:0 0 26px;height:5px;background:#efbc23;border-radius:4px;margin-top:8px}
+.nautical-plan-crossing i{background:none;border-top:4px dashed #ca9709;height:0;border-radius:0}.nautical-plan-other i{background:#72b83a;height:14px;margin-top:3px}.nautical-plan-sail i{background:#268fc6;height:14px;margin-top:3px}
+.nautical-plan-limit{font-size:13px;line-height:1.7;padding:16px 20px;margin:20px 26px;background:#f8f1f6;border-radius:14px;color:#624258}
+.nautical-plan-sources{border-top:1px solid #eadfe6;padding:18px 26px;color:var(--plan-muted);font-size:13px;line-height:1.7}
+.nautical-plan summary{cursor:pointer;color:#713264;font-weight:700;min-height:28px}.nautical-plan-sources a{color:#803471;text-decoration:underline;text-underline-offset:3px}.nautical-plan-sources ul{padding-left:20px}.nautical-plan-sources li{margin-bottom:8px}
+@media(max-width:620px){.nautical-plan{border-radius:20px}.nautical-plan-head{padding:20px 16px 4px;flex-direction:column;gap:12px}.nautical-plan-sectors{padding:16px;display:grid;grid-template-columns:1fr 1fr}.nautical-plan-sectors button{font-size:12px;padding:10px 8px}.nautical-plan-canvas{margin:0 12px;border-radius:10px}.nautical-plan-controls{padding:14px 16px 0;gap:8px}.nautical-plan-controls button{font-size:12px}.nautical-plan-help,.nautical-plan-status{margin:12px 16px}.nautical-plan-legend{margin:16px;grid-template-columns:1fr}.nautical-plan-limit{margin:16px;padding:14px}.nautical-plan-sources{padding:16px}}

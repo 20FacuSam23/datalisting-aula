@@ -1,52 +1,158 @@
 (() => {
-'use strict';
-const ns='http://www.w3.org/2000/svg',frame=document.getElementById('riverMap');
-if(!frame)return;
-const panel=document.createElement('section');panel.hidden=true;panel.className='nautical-live-map';
-const toolbar=document.createElement('div');toolbar.className='map-tabs';
-const svg=document.createElementNS(ns,'svg');svg.setAttribute('viewBox','0 0 1000 600');svg.setAttribute('role','img');svg.setAttribute('aria-label','Mapa interactivo con zonas náuticas publicadas y posición voluntaria');svg.style.cssText='width:100%;height:440px;background:#dcebea;touch-action:none;display:block;border-radius:24px;cursor:grab';
-const status=document.createElement('p');status.setAttribute('role','status');status.textContent='Consultando las áreas publicadas…';
-const legend=document.createElement('div');legend.setAttribute('aria-label','Leyenda del mapa');legend.style.cssText='display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:16px 0';for(const [color,label]of [['#efc83c','Remo, kayak y SUP · capa publicada'],['#31a5e8','Vela · capa publicada'],['#69b63b','A · Motor, wakeboard y arrastre'],['#07a9e0','Tu posición GPS y su precisión']]){const item=document.createElement('div');item.style.cssText='padding:12px;border:1px solid #d2dedf;border-radius:12px;background:#fff;display:flex;gap:10px;align-items:center';const swatch=document.createElement('span');swatch.style.cssText='display:inline-block;flex:0 0 18px;width:18px;height:18px;border-radius:5px;background:'+color;const text=document.createElement('span');text.textContent=label;item.append(swatch,text);legend.append(item);}
-const notice=document.createElement('p');notice.className='embed-note';notice.textContent='Los trazados C-1, C-2 y cruces extraídos de la imagen se retiraron por errores de ubicación. Se muestra únicamente la capa enlazada por Prefectura, cuya actualización debe confirmarse. El GPS solo muestra tu dispositivo.';
-const attribution=document.createElement('p');attribution.className='embed-note';const osm=document.createElement('a');osm.href='https://www.openstreetmap.org/copyright';osm.target='_blank';osm.rel='noopener';osm.textContent='Mapa © OpenStreetMap';const official=document.createElement('a');official.href='https://www.argentina.gob.ar/prefecturanaval/deportesnauticos/zona-de-privilegio-practica-deportiva/prefectura-parana';official.target='_blank';official.rel='noopener';official.textContent='Áreas: cartografía enlazada por Prefectura Paraná';attribution.append(osm,' · ',official);
-const crossingLegend=document.createElement('p');crossingLegend.textContent='Los cruces punteados y los recorridos C-1 / C-2 del plano nuevo no se muestran hasta corregir su ubicación';legend.after(crossingLegend);panel.append(toolbar,svg,status,legend,notice,attribution);panel.insertBefore(crossingLegend,notice);frame.before(panel);
-let referenceMode=false,referenceZones=[];
-let zoom=14,center=[-60.524,-31.707],zones=[],point=null,watch=null,drag=null,pending=false,loaded=false,sourceAt='';
-function project(lon,lat,z=zoom){const scale=256*2**z;const sine=Math.sin(Math.max(-85,Math.min(85,lat))*Math.PI/180);return [(lon+180)/360*scale,(.5-Math.log((1+sine)/(1-sine))/(4*Math.PI))*scale];}
-function unproject(x,y){const scale=256*2**zoom;return [x/scale*360-180,Math.atan(Math.sinh(Math.PI*(1-2*y/scale)))*180/Math.PI];}
-function node(tag,attrs){const e=document.createElementNS(ns,tag);for(const[k,v]of Object.entries(attrs))e.setAttribute(k,String(v));return e;}
-function isRemo(f){return ['remo','cruce'].includes(f.properties?.kind)||(f.properties?.tipo||'').includes('remo');}
-function color(f){const t=(f.properties?.tipo||'').toLowerCase();return t.includes('remo')?'#efc83c':t.includes('motor')?'#69b63b':'#31a5e8';}
-function redraw(){pending=false;svg.replaceChildren();const [cx,cy]=project(...center),left=cx-500,top=cy-300;
- for(let x=Math.floor(left/256);x<=Math.floor((left+1000)/256);x++)for(let y=Math.floor(top/256);y<=Math.floor((top+600)/256);y++){if(x<0||y<0||x>=2**zoom||y>=2**zoom)continue;const im=node('image',{x:x*256-left,y:y*256-top,width:256,height:256,href:'https://tile.openstreetmap.org/'+zoom+'/'+x+'/'+y+'.png'});svg.append(im);}
-
- const source=referenceMode?referenceZones:zones;
- for(const f of [...source].sort((a,b)=>Number(isRemo(a))-Number(isRemo(b)))){
- const kind=f.properties?.kind||((f.properties?.tipo||'').includes('remo')?'remo':(f.properties?.tipo||'').includes('motor')?'motor':'vela');
- const main=kind==='remo'||kind==='cruce',stroke=kind==='motor'?'#6cb53b':kind==='vela'?'#259fdf':'#ffd740';
- const g=f.geometry;const polys=g.type==='MultiPolygon'?g.coordinates:g.type==='Polygon'?[g.coordinates]:[];
- const lines=g.type==='LineString'?[g.coordinates]:g.type==='MultiLineString'?g.coordinates:[];
- const screen=c=>{const q=project(c[0],c[1]);return[q[0]-left,q[1]-top];};
- const pathOf=(line,close=false)=>line.map((c,i)=>{const p=screen(c);return(i?'L':'M')+p[0].toFixed(2)+','+p[1].toFixed(2);}).join(' ')+(close?' Z':'');
- function addShape(d,polygon){const path=node('path',{d,fill:polygon?stroke:'none','fill-opacity':main?.22:.08,stroke,'stroke-width':polygon?(main?2:1):(kind==='cruce'?4:6),'stroke-opacity':main?1:.4,'fill-rule':'evenodd','stroke-linecap':'round','stroke-linejoin':'round'});if(kind==='cruce')path.setAttribute('stroke-dasharray','9 9');const title=node('title',{});title.textContent=f.properties?.description||f.properties?.disciplina||f.properties?.name;path.append(title);path.onclick=()=>{status.textContent=f.properties?.description||f.properties?.disciplina||'Área de referencia';};svg.append(path);}
- for(const rings of polys)addShape(rings.map(r=>pathOf(r,true)).join(' '),true);
- for(const line of lines)addShape(pathOf(line),false);
- let anchor=f.properties?.label_point;if(!anchor&&polys[0]?.[0]?.length){const r=polys[0][0];anchor=[r.reduce((a,p)=>a+p[0],0)/r.length,r.reduce((a,p)=>a+p[1],0)/r.length];}
- if(anchor){const [x,y]=screen(anchor);const label=node('text',{x,y,fill:kind==='lugar'?'#233f46':main?'#614500':'#34545b','font-size':kind==='lugar'?14:main?18:14,'font-weight':main?850:650,'text-anchor':'middle',stroke:'#fff','stroke-width':5,'paint-order':'stroke','pointer-events':'none'});label.textContent=f.properties?.name||(main?'C · Remo':kind==='motor'?'A · Motor':'B · Vela');svg.append(label);}
- }
-
- if(point){const p=project(point.lon,point.lat),x=p[0]-left,y=p[1]-top;const metersPerPixel=156543.03392*Math.cos(point.lat*Math.PI/180)/2**zoom;svg.append(node('circle',{cx:x,cy:y,r:Math.max(4,Math.min(1000,point.accuracy/metersPerPixel)),fill:'#20c8ef','fill-opacity':.15,stroke:'#087daa','stroke-width':1}));svg.append(node('circle',{cx:x,cy:y,r:8,fill:'#07a9e0',stroke:'#fff','stroke-width':3}));}
-}
-function draw(){if(!pending){pending=true;requestAnimationFrame(redraw);}}
-for(const [label,action]of [['Acercar +',()=>{zoom=Math.min(18,zoom+1);draw();}],['Alejar −',()=>{zoom=Math.max(11,zoom-1);draw();}],['Ver el entorno',()=>{zoom=14;center=[-60.524,-31.707];draw();}]]){const b=document.createElement('button');b.type='button';b.textContent=label;b.onclick=action;toolbar.append(b);}
-function cursor(e){const r=svg.getBoundingClientRect();return[(e.clientX-r.left)*1000/r.width,(e.clientY-r.top)*600/r.height];}
-svg.addEventListener('pointerdown',e=>{const p=cursor(e);drag={p,center:project(...center)};svg.setPointerCapture(e.pointerId);});svg.addEventListener('pointermove',e=>{if(!drag)return;const p=cursor(e);center=unproject(drag.center[0]-(p[0]-drag.p[0]),drag.center[1]-(p[1]-drag.p[1]));draw();});for(const t of ['pointerup','pointercancel'])svg.addEventListener(t,()=>drag=null);
-svg.addEventListener('wheel',e=>{e.preventDefault();zoom=Math.max(11,Math.min(18,zoom+(e.deltaY<0?1:-1)));draw();},{passive:false});
-async function load(){if(loaded)return;loaded=true;try{const r=await fetch(new URL('nautical-zones.geojson',document.currentScript?.src||new URL('../assets/',location.href)),{cache:'no-cache'});if(!r.ok)throw Error();const d=await r.json();zones=(d.features||[]).filter(f=>f.properties?.prefectura==='PREFECTURA PARANÁ');if(!zones.length)throw Error();sourceAt=d.consulted_at||'';status.textContent='Capa cartográfica enlazada por Prefectura. Los recorridos y cruces del plano nuevo están pendientes de ubicación verificada.';draw();}catch{loaded=false;status.textContent='No se pudieron cargar las áreas. No se muestran zonas ni cruces inventados.';}}
-
-function open(){panel.hidden=false;frame.hidden=true;draw();load();}
-function stop(){if(watch!==null)navigator.geolocation.clearWatch(watch);watch=null;document.getElementById('startRiverPosition').disabled=false;document.getElementById('stopRiverPosition').hidden=true;}
-document.querySelectorAll('[data-map]').forEach(b=>b.addEventListener('click',()=>{if(b.dataset.map==='nautical')open();else{panel.hidden=true;frame.hidden=false;}if(watch!==null){stop();document.getElementById('riverPositionStatus').textContent='Seguimiento detenido al cambiar de vista.';}}));
-document.getElementById('startRiverPosition').onclick=()=>{if(!navigator.geolocation){status.textContent='Ubicación no disponible en este navegador.';return;}stop();open();document.getElementById('startRiverPosition').disabled=true;document.getElementById('stopRiverPosition').hidden=false;document.getElementById('riverPositionStatus').textContent='Esperando permiso y señal GPS…';watch=navigator.geolocation.watchPosition(p=>{point={lat:p.coords.latitude,lon:p.coords.longitude,accuracy:p.coords.accuracy};if(!Number.isFinite(point.lat)||!Number.isFinite(point.lon))return;center=[point.lon,point.lat];document.getElementById('riverPositionStatus').textContent='GPS actualizado '+new Date(p.timestamp).toLocaleTimeString('es-AR')+' · precisión aproximada '+Math.round(point.accuracy)+' m. Solo tu dispositivo; no se envía a Datalisting.';draw();},e=>{stop();document.getElementById('riverPositionStatus').textContent=e.code===1?'No autorizaste la ubicación. El mapa sigue disponible.':'No se pudo obtener la ubicación. Intentá de nuevo.';},{enableHighAccuracy:true,timeout:20000,maximumAge:3000});};
-document.getElementById('stopRiverPosition').onclick=()=>{stop();point=null;draw();document.getElementById('riverPositionStatus').textContent='Ubicación detenida y marcador retirado.';};window.addEventListener('pagehide',stop);
+  'use strict';
+  const scriptUrl = document.currentScript.src;
+  const frame = document.getElementById('riverMap');
+  if (!frame) return;
+  // Image coordinates only: this viewer deliberately creates no geographic routes.
+  const W = 906, H = 511, ns = 'http://www.w3.org/2000/svg';
+  const panel = document.createElement('section');
+  panel.id = 'nauticalPlan';
+  panel.className = 'nautical-plan';
+  panel.hidden = true;
+  panel.setAttribute('aria-labelledby', 'nauticalPlanTitle');
+  panel.innerHTML = `
+    <header class="nautical-plan-head">
+      <div><span class="nautical-plan-kicker">EL RÍO · PLANO DE REFERENCIA</span><h2 id="nauticalPlanTitle">Conocé las zonas del plano.</h2><p>Explorá C-1, C-2 y los cruces sobre la imagen original.</p></div>
+      <span class="nautical-plan-badge">Vigencia por confirmar</span>
+    </header>
+    <div class="nautical-plan-sectors" role="group" aria-label="Explorar sectores del plano">
+      <button type="button" data-sector="all" aria-pressed="true">Plano completo</button>
+      <button type="button" data-sector="c1" aria-pressed="false">C-1 · Costa e islote</button>
+      <button type="button" data-sector="c2" aria-pressed="false">C-2 · Isla Puente</button>
+      <button type="button" data-sector="crossings" aria-pressed="false">Cruces punteados</button>
+    </div>
+    <div class="nautical-plan-canvas"></div>
+    <div class="nautical-plan-controls" role="group" aria-label="Ampliación del plano">
+      <button type="button" data-zoom="in" aria-label="Ampliar el plano">＋</button>
+      <output aria-label="Ampliación actual">100 %</output>
+      <button type="button" data-zoom="out" aria-label="Reducir el plano">−</button>
+      <button type="button" data-zoom="reset">Restablecer vista</button>
+    </div>
+    <p id="nauticalPlanHelp" class="nautical-plan-help">Ampliá con ＋ y −; arrastrá para recorrer el plano. En el celular también podés usar dos dedos. Con teclado: flechas, ＋, − e Inicio.</p>
+    <p class="nautical-plan-status" role="status" aria-live="polite">Plano completo. Se conserva la imagen original.</p>
+    <div class="nautical-plan-legend" aria-label="Leyenda del plano">
+      <div class="nautical-plan-remo"><i aria-hidden="true"></i><span><b>C-1 / C-2 · Remo, kayak y SUP</b><small>Amarillo continuo: sectores dibujados en el plano.</small></span></div>
+      <div class="nautical-plan-crossing"><i aria-hidden="true"></i><span><b>Cruces del plano</b><small>Amarillo punteado: cruces indicados en la imagen.</small></span></div>
+      <div class="nautical-plan-other"><i aria-hidden="true"></i><span><b>A · Motor y arrastre</b><small>Verde en el plano.</small></span></div>
+      <div class="nautical-plan-sail"><i aria-hidden="true"></i><span><b>B-1 / B-2 · Vela</b><small>Azul en el plano.</small></span></div>
+    </div>
+    <p class="nautical-plan-limit">Plano de consulta: no muestra tu posición, el tránsito ni las condiciones actuales del río. Confirmá con la escuela y Prefectura las zonas habilitadas antes de salir.</p>
+    <details class="nautical-plan-sources"><summary>Fuente y alcance del plano</summary>
+      <p>Imagen aportada como referencia y coincidente con el plano publicado por Elonce el 19 de diciembre de 2025. Se conservan sus costas, nombres, líneas y cruces, sin redibujarlos sobre otro mapa.</p>
+      <p>La página de Prefectura enlaza una disposición de 2020. La capa digital consultada no incluye C-2 ni los cruces del plano recibido. Hace falta contrastar el anexo vigente y sus coordenadas para incorporarlos a un mapa geográfico.</p>
+      <p>En esta imagen se distinguen dos cruces punteados; una entrevista del 20 de diciembre de 2025 menciona tres sectores de cruce. Esa diferencia queda pendiente de verificación.</p>
+      <ul><li><a href="https://www.argentina.gob.ar/prefecturanaval/deportesnauticos/zona-de-privilegio-practica-deportiva/prefectura-parana" target="_blank" rel="noopener noreferrer">Consultar Prefectura Paraná ↗</a></li>
+      <li><a href="https://www.elonce.com/parana/navegacion-segura-prefectura-delimito-zonas-habilitadas-para-deportes-nauticos-en-parana.htm" target="_blank" rel="noopener noreferrer">Publicación del plano · 19/12/2025 ↗</a></li>
+      <li><a href="https://www.elonce.com/parana/delimitaron-nuevas-areas-para-kayak-y-sup-en-el-rio-parana.htm" target="_blank" rel="noopener noreferrer">Entrevista a Prefectura · 20/12/2025 ↗</a></li></ul>
+      <a class="nautical-plan-original" target="_blank" rel="noopener">Abrir imagen original ↗</a>
+    </details>`;
+  const imageUrl = new URL('plano-nautico-referencia.png', scriptUrl).href;
+  panel.querySelector('.nautical-plan-original').href = imageUrl;
+  const svg = document.createElementNS(ns, 'svg');
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.setAttribute('role', 'img');
+  svg.setAttribute('tabindex', '0');
+  svg.setAttribute('aria-label', 'Plano original: Isla Puente, Islote Municipal, canal secundario, C-1, C-2 y cruces punteados.');
+  svg.setAttribute('aria-describedby', 'nauticalPlanHelp');
+  const image = document.createElementNS(ns, 'image');
+  image.setAttribute('href', imageUrl);
+  image.setAttribute('width', W);
+  image.setAttribute('height', H);
+  svg.append(image);
+  panel.querySelector('.nautical-plan-canvas').append(svg);
+  frame.before(panel);
+  const output = panel.querySelector('output');
+  const status = panel.querySelector('.nautical-plan-status');
+  const sectorButtons = [...panel.querySelectorAll('[data-sector]')];
+  const fit = {x: 0, y: 0, w: W, h: H};
+  let box = {...fit}, gesture = null;
+  const pointers = new Map();
+  const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+  function render(next, message) {
+    const w = clamp(next.w, W / 6, W), h = w * H / W;
+    box = {x: clamp(next.x, 0, W - w), y: clamp(next.y, 0, H - h), w, h};
+    svg.setAttribute('viewBox', `${box.x} ${box.y} ${box.w} ${box.h}`);
+    output.textContent = `${Math.round(W / box.w * 100)} %`;
+    panel.querySelector('[data-zoom=in]').disabled = box.w <= W / 6 + .01;
+    panel.querySelector('[data-zoom=out]').disabled = box.w >= W - .01;
+    if (message) status.textContent = message;
+  }
+  function clearSelection() { sectorButtons.forEach(b => b.setAttribute('aria-pressed', 'false')); }
+  function selectSector(name) {
+    const sectors = {
+      all: [fit, 'Plano completo. Se conserva la imagen original.'],
+      c1: [{x: 190, y: 120, w: 520}, 'C-1: detalle de la costa y del Islote Municipal en el plano original.'],
+      c2: [{x: 20, y: 65, w: 480}, 'C-2: detalle del lado interior de Isla Puente en el plano original.'],
+      crossings: [{x: 190, y: 175, w: 415}, 'Detalle de los dos cruces punteados visibles en esta imagen. Su vigencia está pendiente de confirmar.']
+    };
+    sectorButtons.forEach(b => b.setAttribute('aria-pressed', String(b.dataset.sector === name)));
+    render(...sectors[name]);
+  }
+  function zoomBy(factor, anchor = {x: box.x + box.w / 2, y: box.y + box.h / 2}) {
+    const w = clamp(box.w / factor, W / 6, W), ratio = w / box.w;
+    clearSelection();
+    render({x: anchor.x - (anchor.x - box.x) * ratio, y: anchor.y - (anchor.y - box.y) * ratio, w});
+  }
+  sectorButtons.forEach(b => b.addEventListener('click', () => selectSector(b.dataset.sector)));
+  panel.querySelector('[data-zoom=in]').onclick = () => zoomBy(1.35);
+  panel.querySelector('[data-zoom=out]').onclick = () => zoomBy(1 / 1.35);
+  panel.querySelector('[data-zoom=reset]').onclick = () => selectSector('all');
+  const distance = points => Math.hypot(points[1].x - points[0].x, points[1].y - points[0].y);
+  const midpoint = points => ({x: (points[0].x + points[1].x) / 2, y: (points[0].y + points[1].y) / 2});
+  function beginGesture() {
+    const points = [...pointers.values()];
+    gesture = points.length === 1 ? {kind: 'pan', origin: points[0], box: {...box}} : points.length === 2 ? {kind: 'pinch', origin: midpoint(points), distance: distance(points), box: {...box}} : null;
+  }
+  svg.addEventListener('pointerdown', e => {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    svg.focus({preventScroll: true});
+    pointers.set(e.pointerId, {x: e.clientX, y: e.clientY});
+    svg.setPointerCapture(e.pointerId);
+    beginGesture();
+  });
+  svg.addEventListener('pointermove', e => {
+    if (!pointers.has(e.pointerId)) return;
+    pointers.set(e.pointerId, {x: e.clientX, y: e.clientY});
+    if (!gesture) return;
+    const rect = svg.getBoundingClientRect(), start = gesture.box, points = [...pointers.values()];
+    if (!rect.width || !rect.height) return;
+    clearSelection();
+    if (gesture.kind === 'pan') {
+      render({x: start.x - (e.clientX - gesture.origin.x) * start.w / rect.width, y: start.y - (e.clientY - gesture.origin.y) * start.h / rect.height, w: start.w});
+    } else if (points.length === 2 && gesture.distance > 0) {
+      const mid = midpoint(points), w = clamp(start.w * gesture.distance / Math.max(1, distance(points)), W / 6, W), ratio = w / start.w;
+      const anchor = {x: start.x + (gesture.origin.x - rect.left) / rect.width * start.w, y: start.y + (gesture.origin.y - rect.top) / rect.height * start.h};
+      render({x: anchor.x - (anchor.x - start.x) * ratio - (mid.x - gesture.origin.x) * w / rect.width, y: anchor.y - (anchor.y - start.y) * ratio - (mid.y - gesture.origin.y) * w * H / W / rect.height, w});
+    }
+  });
+  function endPointer(e) { pointers.delete(e.pointerId); beginGesture(); }
+  for (const event of ['pointerup', 'pointercancel', 'lostpointercapture']) svg.addEventListener(event, endPointer);
+  svg.addEventListener('wheel', e => {
+    if (!e.ctrlKey && document.activeElement !== svg) return;
+    e.preventDefault();
+    const point = svg.createSVGPoint(); point.x = e.clientX; point.y = e.clientY;
+    const matrix = svg.getScreenCTM();
+    if (matrix) zoomBy(e.deltaY < 0 ? 1.12 : 1 / 1.12, point.matrixTransform(matrix.inverse()));
+  }, {passive: false});
+  svg.addEventListener('keydown', e => {
+    const move = {ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1]}[e.key];
+    if (move) { e.preventDefault(); clearSelection(); render({x: box.x + move[0] * box.w / 8, y: box.y + move[1] * box.h / 8, w: box.w}); }
+    else if (['+', '=', '-'].includes(e.key)) { e.preventDefault(); zoomBy(e.key === '-' ? 1 / 1.35 : 1.35); }
+    else if (e.key === 'Home') { e.preventDefault(); selectSector('all'); }
+  });
+  image.addEventListener('error', () => { status.textContent = 'No se pudo cargar el plano original. Podés consultar la fuente al pie.'; });
+  document.querySelectorAll('[data-map]').forEach(button => button.addEventListener('click', () => {
+    const open = button.dataset.map === 'nautical';
+    panel.hidden = !open;
+    frame.hidden = open;
+    if (open) document.getElementById('mapExplanation').textContent = 'Consulta del plano original. El trazado geográfico de C-1, C-2 y cruces sigue pendiente de validación.';
+  }));
+  render(fit);
+  function openFromHash() {
+    if (location.hash !== '#mapa-nautico' || typeof show !== 'function') return;
+    show('rio');
+    document.querySelector('[data-map="nautical"]')?.click();
+  }
+  window.addEventListener('hashchange', openFromHash);
+  openFromHash();
 })();
