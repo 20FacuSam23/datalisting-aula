@@ -114,3 +114,52 @@ $('identityForm').onsubmit=run(async e=>{await request(base+'/manage/settings',{
  function scan(root){if(root.matches?.('input'))setup(root);root.querySelectorAll?.('input[type="password"]').forEach(setup);}
  scan(document);new MutationObserver(records=>records.forEach(r=>r.addedNodes.forEach(n=>{if(n.nodeType===1)scan(n);}))).observe(document.body,{childList:true,subtree:true});
 })();
+
+/* Mostrar y ocultar contraseña sin modificar su valor. */
+(()=>{
+ const style=document.createElement('style');
+ style.textContent=[
+  '.dl-password-field{position:relative;display:block;min-width:0}',
+  '.dl-password-field>input{box-sizing:border-box;padding-right:54px!important}',
+  '.dl-password-toggle{position:absolute;right:5px;top:50%;transform:translateY(-50%);width:44px;height:44px;min-height:0!important;max-height:calc(100% - 4px);display:grid;place-items:center;border:0!important;border-radius:10px;background:transparent!important;color:#334155!important;cursor:pointer;padding:0!important;touch-action:manipulation}',
+  '.dl-password-toggle:hover{background:rgba(46,57,82,.08)!important}',
+  '.dl-password-toggle:focus-visible{outline:2px solid #5144a0;outline-offset:1px}',
+  '.dl-password-toggle svg{display:block;width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}'
+ ].join('\n');
+ document.head.append(style);
+ const processed=new WeakSet();
+ const eye='<path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/>';
+ const eyeOff='<path d="M10.58 10.587a2 2 0 0 0 2.83 2.83"/><path d="M9.88 5.09A10.93 10.93 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 13.19"/><path d="M6.61 6.61A13.15 13.15 0 0 0 2 12s3 7 10 7a9.7 9.7 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/>';
+ function enhance(input){
+  if(processed.has(input)||input.type!=='password'||!input.parentNode)return;
+  processed.add(input);
+  const wrap=document.createElement('span');wrap.className='dl-password-field';
+  input.parentNode.insertBefore(wrap,input);wrap.append(input);
+  const button=document.createElement('button');button.type='button';button.className='dl-password-toggle';
+  const icon=document.createElementNS('http://www.w3.org/2000/svg','svg');
+  icon.setAttribute('viewBox','0 0 24 24');icon.setAttribute('aria-hidden','true');
+  function setLabel(shown){
+   button.setAttribute('aria-label',shown?'Ocultar contraseña':'Mostrar contraseña');
+   button.setAttribute('title',shown?'Ocultar contraseña':'Mostrar contraseña');
+   button.setAttribute('aria-pressed',String(shown));
+   icon.innerHTML=shown?eyeOff:eye;
+  }
+  setLabel(false);
+  button.append(icon);wrap.append(button);
+  button.addEventListener('click',()=>{
+   const shown=input.type==='password';
+   input.type=shown?'text':'password';
+   setLabel(shown);
+   input.focus({preventScroll:true});
+  });
+ }
+ function scan(root){
+  if(root.matches?.('input[type="password"]'))enhance(root);
+  root.querySelectorAll?.('input[type="password"]').forEach(enhance);
+ }
+ scan(document);
+ new MutationObserver(records=>records.forEach(record=>record.addedNodes.forEach(node=>{
+  if(node.nodeType===1)scan(node);
+ }))).observe(document.body,{childList:true,subtree:true});
+})();
+
