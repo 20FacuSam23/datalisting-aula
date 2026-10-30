@@ -333,5 +333,7 @@ document.getElementById("demoForm").addEventListener("submit",e=>{
 navigate(pages.has(location.hash.slice(1))?location.hash.slice(1):"inicio");
 window.addEventListener("hashchange",()=>{const next=location.hash.slice(1);if(pages.has(next)) navigate(next);});
 </script>
+
+<script defer src="../assets/portal-privacy-consent.js" data-portal="escuela-mayores"></script>
 </body>
 </html>
