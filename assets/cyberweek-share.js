@@ -7,8 +7,8 @@
 
   var status = panel.querySelector('[data-cw-status]');
   var title = 'CYBER WEEK SUP · A Remarla';
-  var link = window.location.origin + window.location.pathname + '#cyberweek-sup';
-  var message = 'CYBER WEEK SUP en A Remarla, Paraná. Del 2 al 4 de noviembre de 2026. 4 clases de 1 hora y media. Hasta 50% OFF. Cupos limitados para noviembre y diciembre. Reservas con seña de $10.000. WhatsApp: 343 4461280.';
+  var link = 'https://20facusam23.github.io/datalisting-aula/a-remarla/#cyberweek-sup';
+  var message = 'CYBER WEEK SUP · A Remarla, Paraná\nDel 2 al 4 de noviembre de 2026.\nCurso de SUP: 4 clases de 1 hora y media.\nPROMOS: 2x1 (50% OFF) · Individual (35% OFF) · Alumnos A Remarla (40% OFF) · Tabla propia (50% OFF).\nCupos limitados. Inscripciones para noviembre y diciembre.\nMirá los precios, elegí tu promoción e inscribite en la página:';
   var filename = 'a-remarla-cyber-week-sup-historia-2026.png';
   var imageFile = null;
   var imagePromise = null;
@@ -104,26 +104,27 @@
     text(ctx, '4 CLASES DE 1 HORA Y MEDIA', 540, 882, 49, '#ffffff', 800, 'center');
     text(ctx, 'STAND UP PADDLE SURF', 540, 932, 35, '#91f6ef', 700, 'center');
 
-    var prices = [
-      ['VIENEN 2, PAGA 1 · 50% OFF', '$30.000'],
-      ['INSCRIPCIÓN INDIVIDUAL · 35% OFF', '$39.000'],
-      ['ALUMNOS A REMARLA · 40% OFF', '$36.000'],
-      ['CON TABLA PROPIA · 50% OFF', '$30.000']
+    // Esta pieza es publicitaria: los importes sólo aparecen en el formulario de inscripción.
+    var promos = [
+      ['VIENEN 2, PAGA 1', '50% OFF'],
+      ['VENÍS SOLO/A', '35% OFF'],
+      ['ALUMNOS A REMARLA', '40% OFF'],
+      ['CON TABLA PROPIA', '50% OFF']
     ];
-    for (var n = 0; n < prices.length; n++) {
+    for (var n = 0; n < promos.length; n++) {
       var top = 1010 + n * 131;
       roundRect(ctx, 65, top, 950, 110, 22);
-      ctx.fillStyle = n === 0 ? '#ffffff' : 'rgba(255,255,255,0.91)';
+      ctx.fillStyle = n === 0 ? '#ffffff' : 'rgba(255,255,255,0.94)';
       ctx.fill();
-      text(ctx, prices[n][0], 93, top + 68, 29, '#21354e', 800);
-      text(ctx, prices[n][1], 982, top + 73, 45, '#a32682', 900, 'right');
+      text(ctx, promos[n][0], 93, top + 68, 33, '#21354e', 800);
+      text(ctx, promos[n][1], 982, top + 75, 53, '#a32682', 900, 'right');
     }
 
-    text(ctx, 'PROMO DEL 2 AL 4 DE NOVIEMBRE', 540, 1603, 44, '#a8fff6', 900, 'center');
-    text(ctx, 'INSCRIPCIONES NOVIEMBRE Y DICIEMBRE 2026', 540, 1670, 30, '#ffffff', 700, 'center');
-    text(ctx, 'CUPOS LIMITADOS  ·  SEÑA $10.000', 540, 1740, 36, '#ff9cd6', 900, 'center');
-    text(ctx, 'RESERVAS: 343 4461280 · GUILLE', 540, 1814, 38, '#ffffff', 900, 'center');
-    text(ctx, 'BALNEARIO THOMPSON · PARANÁ', 540, 1862, 28, '#cde1e9', 700, 'center');
+    text(ctx, 'PROMO DEL 2 AL 4 DE NOVIEMBRE', 540, 1604, 44, '#a8fff6', 900, 'center');
+    text(ctx, 'CURSOS DE NOVIEMBRE Y DICIEMBRE 2026', 540, 1661, 32, '#ffffff', 800, 'center');
+    text(ctx, 'CUPOS LIMITADOS', 540, 1723, 38, '#ff9cd6', 900, 'center');
+    text(ctx, 'VER PRECIOS E INSCRIBIRME', 540, 1800, 42, '#a8fff6', 900, 'center');
+    text(ctx, 'ENLACE DE LA HISTORIA · A REMARLA', 540, 1852, 27, '#ffffff', 700, 'center');
     return canvas;
   }
 
@@ -214,17 +215,17 @@
         if (imageFile && navigator.share && navigator.canShare && navigator.canShare({ files: [imageFile] })) {
           try {
             await navigator.share({ files: [imageFile], title: title });
-            announce('Seleccioná Instagram y, si aparece, la opción Historia.');
+            announce('En Instagram agregá el sticker «Enlace» con el botón Copiar enlace de esta tarjeta para que puedan inscribirse.');
           } catch (error) {
             if (error && error.name !== 'AbortError') {
               downloadImage(imageFile);
-              announce('Se descargó la historia. Abrí Instagram y seleccioná esa imagen.');
+              announce('Historia descargada. Subila a Instagram y agregá el sticker «Enlace» con la dirección de la inscripción.');
             }
           }
         } else {
           var instagramFile = await prepareImage();
           downloadImage(instagramFile);
-          announce('Se descargó la historia vertical. Abrí Instagram y subila desde tu galería.');
+          announce('Historia descargada. Subila a Instagram y agregá el sticker «Enlace» con la dirección de la inscripción.');
         }
         return;
       }
@@ -232,7 +233,7 @@
         announce('Generando historia vertical…');
         var downloadedFile = await prepareImage();
         downloadImage(downloadedFile);
-        announce('Historia PNG 1080 × 1920 lista para Instagram, Facebook y WhatsApp.');
+        announce('Historia lista. Para hacerla clicable en Instagram, añadí el sticker «Enlace» y pegá la URL de la inscripción.');
       }
     } catch (error) {
       announce('No se pudo completar. Probá con Copiar enlace o WhatsApp.');
