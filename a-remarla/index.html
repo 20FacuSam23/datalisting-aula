@@ -50,7 +50,18 @@
   @media(max-width:780px){#cyberweek-sup{padding-top:14px}#cyberweek-sup .section-head{margin-bottom:14px}#cyberweek-sup .cw-layout{grid-template-columns:1fr}#cyberweek-sup .cw-card{order:1}#cyberweek-sup .cw-intro{order:2}#cyberweek-sup .cw-intro{padding:24px}#cyberweek-sup .cw-fields{grid-template-columns:1fr}#cyberweek-sup .cw-money{font-size:1.02rem}}
   @media(max-width:390px){#cyberweek-sup .cw-price{padding:10px}#cyberweek-sup .cw-price strong{font-size:.84rem}}
 </style>
-</head>
+
+<style id="cyberweek-share-style">
+#cyberweek-share{margin:18px 0 0;border:1px solid #e3dce9;border-radius:18px;padding:18px;background:#f8f5fa;color:#202937}
+#cyberweek-share h4{font-size:1.11rem;color:#25283a;margin:0 0 6px}
+#cyberweek-share p{font-size:.86rem;line-height:1.5;color:#525668;margin:0 0 12px}
+#cyberweek-share .cw-share-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+#cyberweek-share .cw-share-actions button{min-width:0;border:1px solid #d9cddd;border-radius:12px;padding:12px 9px;background:#fff;color:#283144;font-size:.88rem;font-weight:750;cursor:pointer}
+#cyberweek-share .cw-share-actions button:first-child{background:#203d57;color:white;border-color:#203d57}
+#cyberweek-share .cw-share-actions button:hover{border-color:#9f428b}
+#cyberweek-share [data-cw-status]{min-height:1.3em;margin:12px 0 0;font-size:.82rem;color:#76406d}
+@media(max-width:400px){#cyberweek-share{padding:13px}#cyberweek-share .cw-share-actions button{font-size:.79rem}}
+</style></head>
 <body>
   <div class="privacy-shield" id="privacyShield" aria-hidden="true">
     <div class="privacy-shield-card">
@@ -127,6 +138,19 @@
         </div>
         <button class="cw-book" type="submit">Solicitar reserva por WhatsApp →</button>
         <p class="cw-note">Reserva con seña de <strong>$10.000 por transferencia</strong>. El envío de este formulario abre WhatsApp para solicitar tu lugar; el cupo se confirma con la escuela luego de acreditar la seña. Consultá las condiciones de la promoción 2×1.</p>
+        <aside id="cyberweek-share" aria-label="Compartir promoción Cyber Week">
+          <h4>Compartí la promoción</h4>
+          <p>Publicala en tus redes o enviásela a alguien que quiera aprender SUP.</p>
+          <div class="cw-share-actions">
+            <button type="button" data-cw-share="instagram">Instagram · Historia</button>
+            <button type="button" data-cw-share="whatsapp">WhatsApp</button>
+            <button type="button" data-cw-share="facebook">Facebook</button>
+            <button type="button" data-cw-share="native">Compartir promo</button>
+            <button type="button" data-cw-share="download">Descargar historia</button>
+            <button type="button" data-cw-share="copy">Copiar enlace</button>
+          </div>
+          <p data-cw-status role="status" aria-live="polite">Historia vertical 1080 × 1920. En Instagram puede ser necesario elegir «Historia» o cargar la imagen descargada.</p>
+        </aside>
       </form>
     </div>
   </div>
@@ -335,6 +359,7 @@
   });
 })();
 </script>
+<script defer src="../assets/cyberweek-share.js?v=20261102-1"></script>
 </body>
 </html>
 
