@@ -136,7 +136,7 @@
     text(ctx, 'INSCRIPCIONES NOV. Y DIC. 2026', 670, 1680, 28, '#ffffff', 800, 'center');
     text(ctx, 'CUPOS LIMITADOS', 670, 1742, 39, '#ff9cd6', 900, 'center');
     text(ctx, 'ESCANEÁ EL QR', 670, 1810, 41, '#a8fff6', 900, 'center');
-    text(ctx, 'O TOCÁ EL ENLACE DE LA HISTORIA', 540, 1870, 27, '#ffffff', 700, 'center');
+    text(ctx, 'PRECIOS E INSCRIPCIÓN EN LA WEB', 540, 1870, 27, '#ffffff', 700, 'center');
     return canvas;
   }
 
@@ -225,16 +225,20 @@
         return;
       }
       if (action === 'native') {
-        if (navigator.share) {
+        var nativeFile = await prepareImage();
+        if (navigator.share && navigator.canShare && navigator.canShare({ files: [nativeFile] })) {
           try {
-            await navigator.share({ title: title, text: message, url: link });
-            announce('Elegiste dónde compartir la promoción.');
+            await navigator.share({ files: [nativeFile], title: title });
+            announce('Compartiste la imagen promocional, sin precios. El QR dirige a la página.');
           } catch (error) {
-            if (error && error.name !== 'AbortError') announce('No se pudo abrir el menú. Usá WhatsApp, Facebook o Copiar enlace.');
+            if (error && error.name !== 'AbortError') {
+              downloadImage(nativeFile);
+              announce('Imagen guardada. Podés subirla a tu estado de WhatsApp o historia de Instagram.');
+            }
           }
         } else {
-          await copyLink();
-          announce('Este navegador no ofrece el menú de compartir. Copiamos el enlace.');
+          downloadImage(nativeFile);
+          announce('Imagen guardada. Podés subirla a tu estado de WhatsApp o historia de Instagram.');
         }
         return;
       }
