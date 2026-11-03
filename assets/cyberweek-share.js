@@ -185,7 +185,22 @@
     var action = button.getAttribute('data-cw-share');
     try {
       if (action === 'whatsapp') {
-        openExternal('https://api.whatsapp.com/send?text=' + encodeURIComponent(message + '\n' + link));
+        // Compartir un archivo de imagen con el selector nativo, no un texto.
+        var whatsappFile = await prepareImage();
+        if (navigator.share && navigator.canShare && navigator.canShare({ files: [whatsappFile] })) {
+          try {
+            await navigator.share({ files: [whatsappFile], title: title });
+            announce('Se abrió la opción para compartir la imagen. En WhatsApp, elegí Mi estado.');
+          } catch (error) {
+            if (error && error.name !== 'AbortError') {
+              downloadImage(whatsappFile);
+              announce('Imagen descargada. Abrí WhatsApp > Novedades > Mi estado y elegí la imagen.');
+            }
+          }
+        } else {
+          downloadImage(whatsappFile);
+          announce('Imagen descargada. Abrí WhatsApp > Novedades > Mi estado y elegí la imagen.');
+        }
         return;
       }
       if (action === 'facebook') {
