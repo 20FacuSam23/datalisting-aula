@@ -209,7 +209,7 @@
 #cyberweek-sup #cyberweek-share .cw-share-actions button:hover{
   background:rgba(23,116,145,.72)!important;border-color:#a5fff7!important
 }
-#cyberweek-sup #cyberweek-share [data-cw-status]{
+#cyberweek-sup #cyberweek-share [data-cw-status]:empty{display:none}\n#cyberweek-sup #cyberweek-share [data-cw-status]{
   color:#c9fff8!important;min-height:1.5em;margin:13px 0 0;font-size:.81rem;line-height:1.48
 }
 @media(max-width:400px){
@@ -305,7 +305,7 @@
             <button type="button" data-cw-share="download">Descargar historia</button>
             <button type="button" data-cw-share="copy">Copiar enlace</button>
           </div>
-          <p data-cw-status role="status" aria-live="polite">Historia sin precios: mostrará las promos y descuentos. En Instagram agregá el sticker «Enlace» para llevar a la inscripción.</p>
+          <p data-cw-status role="status" aria-live="polite"></p>
         </aside>
       </form>
     </div>
