@@ -47,7 +47,18 @@
     const more = document.createElement('p');
     more.textContent = 'Si aceptás, Datalisting registra la maqueta, página, fecha, tipo de dispositivo e IP cifrada para estadísticas y seguridad. No solicita GPS ni guarda datos de los formularios. Podés rechazar o cambiar tu elección desde Privacidad.';
     info.append(summary, more);
-    buttons.append(no,yes); box.append(title,message,info,buttons); document.body.append(box);
+    if (portal === 'a-remarla') {
+      title.textContent = 'Privacidad';
+      message.textContent = '¿Querés compartir datos básicos de navegación?';
+      no.textContent = 'No aceptar';
+      yes.textContent = 'Aceptar';
+      buttons.append(no,yes);
+      box.append(title,message,buttons);
+    } else {
+      buttons.append(no,yes);
+      box.append(title,message,info,buttons);
+    }
+    document.body.append(box);
     const footer = document.querySelector('footer');
     if (footer) footer.append(trigger); else {trigger.style.position='fixed';trigger.style.bottom='9px';trigger.style.right='9px';trigger.style.zIndex='2147482999';document.body.append(trigger);}
     trigger.addEventListener('click',()=>box.hidden=!box.hidden);
