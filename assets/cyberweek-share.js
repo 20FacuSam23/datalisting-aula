@@ -8,7 +8,7 @@
   var status = panel.querySelector('[data-cw-status]');
   var title = 'CYBER WEEK SUP · A Remarla';
   var link = 'https://20facusam23.github.io/datalisting-aula/a-remarla/#cyberweek-sup';
-  var filename = 'a-remarla-cyber-week-sup-historia-2026.jpg';
+  var filename = 'a-remarla-cybersup-redes-2026.jpg';
   var imageFile = null;
   var imagePromise = null;
 
@@ -20,7 +20,7 @@
   function prepareImage() {
     if (imageFile) return Promise.resolve(imageFile);
     if (imagePromise) return imagePromise;
-    imagePromise = fetch('../assets/a-remarla-cyber-week-sup-historia-2026.jpg')
+    imagePromise = fetch('../assets/a-remarla-cybersup-redes-2026.jpg?v=20261103-final')
       .then(function (response) {
         if (!response.ok) throw new Error('Imagen no disponible');
         return response.blob();
