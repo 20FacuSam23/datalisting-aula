@@ -177,7 +177,7 @@
     var slides = Array.from(track.querySelectorAll('.cp-card'));
     if (!slides.length) return;
     currentSlide = (index + slides.length) % slides.length;
-    track.scrollTo({ left: slides[currentSlide].offsetLeft - track.offsetLeft, behavior: instant ? 'instant' : 'smooth' });
+    track.scrollTo({ left: slides[currentSlide].offsetLeft - track.offsetLeft, behavior: instant ? 'auto' : 'smooth' });
     updateDots();
   }
   function stopAuto() {
