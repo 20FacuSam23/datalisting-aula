@@ -17,7 +17,8 @@
   var site = new URL('./', window.location.href.split('#')[0]).href;
   var selected = null;
   var lastFocus = null;
-  var tab = 'active';
+  var currentSlide = 0;
+  var slideTimer = null;
 
   function el(tag, cls, content) {
     var n = document.createElement(tag);
@@ -45,22 +46,12 @@
   heading.append(headingLeft);
   section.append(heading);
 
-  var controls = el('div', 'cp-controls');
-  var tabs = el('div', 'cp-tabs');
-  var activeBtn = button('Vigentes', function () { tab = 'active'; render(); });
-  var expiredBtn = button('Anteriores', function () { tab = 'expired'; render(); });
-  activeBtn.setAttribute('aria-pressed', 'true');
-  expiredBtn.setAttribute('aria-pressed', 'false');
-  tabs.append(activeBtn, expiredBtn);
-  var nav = el('div', 'cp-nav');
   var track = el('div', 'cp-track');
   track.setAttribute('aria-label', 'Carrusel de campañas');
-  nav.append(
-    button('←', function () { track.scrollBy({ left: -300, behavior: 'smooth' }); }),
-    button('→', function () { track.scrollBy({ left: 300, behavior: 'smooth' }); })
-  );
-  controls.append(tabs, nav);
-  section.append(controls, track);
+  var dots = el('div', 'cp-dots');
+  dots.setAttribute('role', 'group');
+  dots.setAttribute('aria-label', 'Elegir campaña del carrusel');
+  section.append(track, dots);
   main.insertBefore(section, previous);
 
   var overlay = el('div');
@@ -164,7 +155,8 @@
   var share = el('div', 'cp-share');
   share.append(el('strong', '', 'Compartir este evento'));
   var shareActions = el('div', 'cp-share-actions');
-  shareActions.append(button('Compartir imagen', function () { sharePicture(campaigns[1], infoCol); }));
+  shareActions.append(button('Compartir tarjeta', function () { shareLink(campaigns[1], infoCol); }));
+  shareActions.append(button('Compartir afiche', function () { sharePicture(campaigns[1], infoCol); }));
   shareActions.append(button('Copiar enlace', function () { copyLink(campaigns[1], infoCol); }));
   var openImage = el('a', '', 'Ver afiche');
   openImage.href = picturePena;
@@ -176,13 +168,44 @@
   penaHolder.append(imageCol, infoCol);
   var holders = { cyberweek: cyberHolder, 'pena-rio-nos-une': penaHolder };
 
+  function updateDots() {
+    Array.from(dots.querySelectorAll('button')).forEach(function (dot, index) {
+      dot.setAttribute('aria-current', String(index === currentSlide));
+    });
+  }
+  function goToSlide(index, instant) {
+    var slides = Array.from(track.querySelectorAll('.cp-card'));
+    if (!slides.length) return;
+    currentSlide = (index + slides.length) % slides.length;
+    track.scrollTo({ left: slides[currentSlide].offsetLeft - track.offsetLeft, behavior: instant ? 'auto' : 'smooth' });
+    updateDots();
+  }
+  function stopAuto() {
+    if (slideTimer !== null) clearInterval(slideTimer);
+    slideTimer = null;
+  }
+  function startAuto() {
+    stopAuto();
+    if (dots.children.length < 2 || !overlay.hidden || document.hidden) return;
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    slideTimer = setInterval(function () {
+      if (!overlay.hidden || document.hidden) return;
+      if (campaigns.some(function (c) { return Date.now() > Date.parse(c.expires) && track.querySelector('[data-cp-id="' + c.id + '"]'); })) {
+        render();
+        return;
+      }
+      goToSlide(currentSlide + 1);
+    }, 6000);
+  }
   function render() {
+    stopAuto();
     track.replaceChildren();
-    activeBtn.setAttribute('aria-pressed', String(tab === 'active'));
-    expiredBtn.setAttribute('aria-pressed', String(tab === 'expired'));
-    var results = campaigns.filter(function (item) { return tab === 'expired' ? expired(item) : active(item); });
-    results.forEach(function (item) {
+    dots.replaceChildren();
+    var results = campaigns.filter(active);
+    currentSlide = 0;
+    results.forEach(function (item, index) {
       var card = el('article', 'cp-card');
+      card.setAttribute('data-cp-id', item.id);
       var action = button('', function () { openModal(item); });
       action.setAttribute('aria-label', 'Ver ' + item.title);
       var img = el('img');
@@ -190,16 +213,42 @@
       img.alt = 'Afiche original: ' + item.title;
       img.loading = 'lazy';
       var meta = el('span', 'cp-card-meta');
-      var badge = el('span', 'cp-badge' + (expired(item) ? ' cp-expired' : ''), expired(item) ? 'Finalizada' : item.type);
+      var badge = el('span', 'cp-badge', item.type);
       meta.append(badge, el('strong', '', item.title), el('small', '', item.date), el('span', 'cp-cta', 'Ver detalles →'));
       action.append(img, meta);
       card.append(action);
       track.append(card);
+      var dot = button('', function () { stopAuto(); goToSlide(index); startAuto(); });
+      dot.setAttribute('aria-label', 'Ir a ' + item.title);
+      dots.append(dot);
     });
-    if (!results.length) track.append(el('p', 'cp-empty', tab === 'expired' ? 'Todavía no hay campañas finalizadas.' : 'No hay campañas activas por el momento.'));
-    nav.hidden = results.length <= 1;
+    if (!results.length) track.append(el('p', 'cp-empty', 'No hay campañas activas por el momento.'));
+    dots.hidden = !results.length;
+    updateDots();
+    goToSlide(0, true);
+    startAuto();
   }
+  track.addEventListener('scroll', function () {
+    var slides = Array.from(track.querySelectorAll('.cp-card'));
+    if (!slides.length) return;
+    var index = 0, distance = Infinity;
+    slides.forEach(function (node, i) {
+      var d = Math.abs(node.offsetLeft - track.offsetLeft - track.scrollLeft);
+      if (d < distance) { distance = d; index = i; }
+    });
+    currentSlide = index;
+    updateDots();
+  }, {passive: true});
+  track.addEventListener('pointerenter', stopAuto);
+  track.addEventListener('pointerleave', startAuto);
+  track.addEventListener('focusin', stopAuto);
+  track.addEventListener('focusout', function () { if (!track.contains(document.activeElement)) startAuto(); });
+  track.addEventListener('touchstart', stopAuto, {passive:true});
+  track.addEventListener('touchend', startAuto, {passive:true});
+  document.addEventListener('visibilitychange', function () { document.hidden ? stopAuto() : startAuto(); });
+
   function openModal(item) {
+    stopAuto();
     selected = item;
     lastFocus = document.activeElement;
     headingTitle.textContent = item.title;
@@ -233,9 +282,28 @@
     selected = null;
     if (window.location.hash.startsWith('#campana-')) history.replaceState(null, '', site);
     if (lastFocus && typeof lastFocus.focus === 'function') lastFocus.focus();
+    startAuto();
+  }
+  function shareUrl(item) {
+    var name = item.id === 'pena-rio-nos-une' ? 'pena-rio-nos-une.html' : 'cyberweek-sup.html';
+    return new URL('campanas/' + name + '?v=20261105', site).href;
+  }
+  async function shareLink(item, context) {
+    var url = shareUrl(item);
+    try {
+      if (navigator.share) {
+        await navigator.share({ url: url });
+        announce(context, 'Enlace compartido. WhatsApp mostrará la tarjeta cuando procese la vista previa.');
+      } else {
+        window.open('https://wa.me/?text=' + encodeURIComponent(url), '_blank', 'noopener');
+        announce(context, 'Compartí el enlace de la campaña desde WhatsApp.');
+      }
+    } catch (error) {
+      if (!error || error.name !== 'AbortError') announce(context, 'No se pudo compartir. Probá con Copiar enlace.');
+    }
   }
   async function copyLink(item, context) {
-    var url = site + '#campana-' + item.id;
+    var url = shareUrl(item);
     try {
       if (navigator.clipboard && window.isSecureContext) await navigator.clipboard.writeText(url);
       else {

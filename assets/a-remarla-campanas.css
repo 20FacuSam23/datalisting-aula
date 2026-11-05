@@ -46,3 +46,13 @@
 body.cp-modal-open{overflow:hidden}
 @media(max-width:760px){#campaign-dialog .cp-pena{grid-template-columns:1fr;gap:14px;padding:13px}#campaign-dialog .cp-two{grid-template-columns:1fr}#campaign-dialog #cyberweek-sup{padding:15px!important}#campaign-overlay{padding:4px}#campaign-dialog{max-height:calc(100dvh - 8px)}#campaign-dialog .cp-dialog-head{padding:8px}#campaign-dialog .cp-dialog-head button{padding:8px}#campanas-remarla{padding:23px 13px!important}}
 @media(prefers-reduced-motion:reduce){#campanas-remarla .cp-track{scroll-behavior:auto}}
+/* Carrusel sin pestañas ni flechas; indicadores discretos y centrados. */
+#campanas-remarla .cp-controls,#campanas-remarla .cp-tabs,#campanas-remarla .cp-nav{display:none!important}
+#campanas-remarla .cp-track{scrollbar-width:none;scroll-behavior:smooth;scroll-padding-inline:clamp(12px,3vw,30px);padding-bottom:8px}
+#campanas-remarla .cp-track::-webkit-scrollbar{display:none}
+#campanas-remarla .cp-dots{display:flex;align-items:center;justify-content:center;gap:9px;min-height:32px;margin:9px 0 0}
+#campanas-remarla .cp-dots[hidden]{display:none!important}
+#campanas-remarla .cp-dots button{width:13px;height:13px;min-height:13px;min-width:13px;border-radius:999px;border:1.5px solid #9ac9d6!important;background:#356277!important;padding:0!important;cursor:pointer;transition:background .18s,transform .18s}
+#campanas-remarla .cp-dots button[aria-current="true"]{background:#9bffee!important;border-color:#9bffee!important;transform:scale(1.23)}
+#campanas-remarla .cp-dots button:focus-visible{outline:2px solid white!important;outline-offset:5px}
+@media(prefers-reduced-motion:reduce){#campanas-remarla .cp-track{scroll-behavior:auto}}

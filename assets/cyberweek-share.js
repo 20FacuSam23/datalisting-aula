@@ -7,7 +7,7 @@
 
   var status = panel.querySelector('[data-cw-status]');
   var title = 'CYBER WEEK SUP · A Remarla';
-  var link = 'https://20facusam23.github.io/datalisting-aula/a-remarla/#campana-cyberweek';
+  var link = 'https://20facusam23.github.io/datalisting-aula/a-remarla/campanas/cyberweek-sup.html?v=20261105';
   var filename = 'a-remarla-cybersup-redes-2026.jpg';
   var imageFile = null;
   var imagePromise = null;
