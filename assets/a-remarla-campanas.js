@@ -225,9 +225,10 @@
   // Mantener siempre las tres campañas; la finalizada queda al final.
   // Mostrar también eventos sin afiche y conservar Cyber Week hasta el 15/11.
   // La fecha de exhibición es independiente del vencimiento para reservar.
-  var ordered = campaigns.filter(function (item) { return now() <= Date.parse(item.visibleUntil || item.expires); }).sort(function (a, b) {
-    return (expired(a) === expired(b) ? Date.parse(a.expires) - Date.parse(b.expires) : expired(a) ? 1 : -1);
-  });
+  // Primero los afiches originales disponibles (Cyber Week y Peña).
+  // La tercera campaña sin afiche se conserva, pero nunca oculta la primera imagen.
+  var ordered = campaigns.filter(function (item) { return now() <= Date.parse(item.visibleUntil || item.expires); });
+  ordered.sort(function (a, b) { return Number(!!b.photo) - Number(!!a.photo); });
   function updateDots() {
     Array.from(dots.children).forEach(function (dot, index) {
       dot.setAttribute('aria-current', String(index === currentSlide));
