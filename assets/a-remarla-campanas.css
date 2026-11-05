@@ -51,3 +51,30 @@ body.cp-modal-open{overflow:hidden}
 #campaign-dialog .cp-pena:has(> :only-child){grid-template-columns:minmax(0,1fr)}
 #campaign-dialog .cp-pena > div > p,#campaign-dialog .cp-pena li{color:#e0f3f5!important;line-height:1.6}
 #campaign-dialog .cp-field textarea{min-height:76px;resize:vertical}
+
+/* Carrusel visual: un afiche por pantalla, swipe, reproducción automática y puntos. */
+#campanas-remarla{padding:clamp(17px,3vw,32px) clamp(10px,4vw,48px) 22px!important}
+#campanas-remarla .cp-heading{margin-bottom:12px}
+#campanas-remarla .cp-heading h2{font-size:clamp(1.5rem,4.2vw,2.5rem)!important;margin:5px 0!important}
+#campanas-remarla .cp-description{font-size:.92rem!important;margin:4px 0 10px!important}
+#campanas-remarla .cp-controls,#campanas-remarla .cp-tabs,#campanas-remarla .cp-nav{display:none!important}
+#campanas-remarla .cp-track{display:flex!important;width:100%;gap:0!important;overflow-x:auto!important;overflow-y:hidden!important;scroll-snap-type:x mandatory!important;scroll-snap-stop:always;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y;scrollbar-width:none!important;padding:0!important;border-radius:15px;scroll-behavior:smooth}
+#campanas-remarla .cp-track::-webkit-scrollbar{display:none}
+#campanas-remarla .cp-card{flex:0 0 100%!important;width:100%!important;min-width:100%!important;max-width:none!important;margin:0!important;scroll-snap-align:start!important;border:0!important;background:transparent!important;box-shadow:none!important;border-radius:0!important}
+#campanas-remarla .cp-card button{width:100%;display:block!important;padding:0!important;border:0!important;background:transparent!important;cursor:pointer}
+#campanas-remarla .cp-card img{display:block!important;object-fit:contain!important;object-position:center!important;width:100%!important;height:min(68dvh,650px)!important;max-height:none!important;background:transparent!important;border:0!important;border-radius:12px}
+#campanas-remarla .cp-card .cp-card-meta{display:none!important}
+#campanas-remarla .cp-image-pending{height:min(68dvh,650px)!important;min-height:350px!important;border-radius:12px;font-size:clamp(1.3rem,4vw,2.5rem)!important}
+#campanas-remarla .cp-dots{display:flex!important;align-items:center;justify-content:center;gap:11px;padding:17px 0 5px;min-height:48px}
+#campanas-remarla .cp-dots button{width:11px!important;height:11px!important;min-width:11px!important;min-height:11px!important;padding:0!important;border:0!important;border-radius:50%!important;background:#a2c4cf!important;opacity:.6;cursor:pointer;transition:transform .2s,background .2s,opacity .2s}
+#campanas-remarla .cp-dots button[aria-current="true"]{background:#93fff0!important;transform:scale(1.3);opacity:1}
+#campanas-remarla .cp-dots button:focus-visible{outline:3px solid white;outline-offset:5px}
+@media(max-width:760px){
+ #campanas-remarla{padding:15px 9px 17px!important}
+ #campanas-remarla .cp-card img{height:min(66dvh,640px)!important}
+ #campanas-remarla .cp-description{margin-bottom:11px!important}
+}
+@media(prefers-reduced-motion:reduce){
+ #campanas-remarla .cp-track{scroll-behavior:auto!important}
+ #campanas-remarla .cp-dots button{transition:none}
+}
