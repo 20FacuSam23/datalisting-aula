@@ -220,7 +220,7 @@
   var holders = { cyberweek: cyberHolder, 'pena-rio-nos-une': penaHolder, 'arroyo-las-conchas': arroyoHolder };
 
   // Mantener siempre las tres campañas; la finalizada queda al final.
-  var ordered = campaigns.slice().sort(function (a, b) {
+  var ordered = campaigns.filter(function (item) { return !!item.photo; }).sort(function (a, b) {
     return (expired(a) === expired(b) ? Date.parse(a.expires) - Date.parse(b.expires) : expired(a) ? 1 : -1);
   });
   function updateDots() {
