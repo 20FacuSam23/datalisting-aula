@@ -8,10 +8,11 @@
 
   var pictureCyber = new URL('../assets/a-remarla-cybersup-redes-2026.jpg?v=20261105-images5', document.baseURI).href;
   var picturePena = new URL('../assets/a-remarla-pena-rio-nos-une-2026.jpg?v=20261105-images5', document.baseURI).href;
+  var pictureArroyo = new URL('../assets/a-remarla-arroyo-las-conchas-2026.jpg?v=20261105-original1', document.baseURI).href;
   var campaigns = [
     { id: 'cyberweek', title: 'Cyber Week · Curso SUP', type: 'Promoción', starts: '2026-11-02T00:00:00-03:00', expires: '2026-11-04T23:59:59-03:00', date: 'Del 2 al 4 de noviembre', visibleUntil: '2026-11-15T23:59:59-03:00', photo: pictureCyber, file: 'a-remarla-cybersup-redes-2026.jpg' },
     { id: 'pena-rio-nos-une', title: 'Peña · El Río Nos Une', type: 'Evento', starts: '2026-11-04T00:00:00-03:00', expires: '2026-11-13T23:59:59-03:00', date: 'Viernes 13 de noviembre · 19:00', photo: picturePena, file: 'a-remarla-pena-rio-nos-une-2026.jpg' },
-    { id: 'arroyo-las-conchas', title: 'Paseo guiado · Arroyo Las Conchas', type: 'Evento', starts: '2026-11-05T00:00:00-03:00', expires: '2026-11-09T23:59:59-03:00', date: 'Lunes 9 de noviembre · 10:00 a 13:00', photo: null, file: null }
+    { id: 'arroyo-las-conchas', title: 'Paseo guiado · Arroyo Las Conchas', type: 'Evento', starts: '2026-11-05T00:00:00-03:00', expires: '2026-11-09T23:59:59-03:00', date: 'Lunes 9 de noviembre · 10:00 a 13:00', photo: pictureArroyo, file: 'a-remarla-arroyo-las-conchas-2026.jpg' }
   ];
   var now = function () { return Date.now(); };
   var active = function (item) { return now() >= Date.parse(item.starts) && now() <= Date.parse(item.expires); };
@@ -173,6 +174,11 @@
   penaHolder.append(imageCol, infoCol);
   // Paseo guiado. No se añade una imagen ficticia: el afiche original puede incorporarse cuando se reciba.
   var arroyoHolder = el('div', 'cp-pena');
+  var arroyoImageCol = el('div');
+  var arroyoImage = el('img');
+  arroyoImage.src = pictureArroyo;
+  arroyoImage.alt = 'Afiche original: Paseo guiado Arroyo Las Conchas, 9 de noviembre a las 10:00';
+  arroyoImageCol.append(arroyoImage);
   var arroyoInfo = el('div');
   arroyoInfo.append(el('span', 'cp-eyebrow', 'PASEO GUIADO · KAYAK Y SUP'), el('h2', '', 'Arroyo Las Conchas'));
   arroyoInfo.append(el('p', '', 'Lunes 9 de noviembre de 2026 · 10:00 a 13:00 hs · Parque General San Martín, Paraná.'));
@@ -205,7 +211,19 @@
   arroyoSend.type = 'submit'; arroyoForm.append(arroyoSend);
   var arroyoStatus = el('p', 'cp-status'); arroyoStatus.setAttribute('data-cp-status', '');
   arroyoInfo.append(arroyoForm, arroyoStatus);
-  arroyoHolder.append(arroyoInfo);
+  var arroyoShare = el('div', 'cp-share');
+  arroyoShare.append(el('strong', '', 'Compartir este paseo'));
+  var arroyoShareActions = el('div', 'cp-share-actions');
+  arroyoShareActions.append(button('Compartir imagen', function () { sharePicture(campaigns[2], arroyoInfo); }));
+  arroyoShareActions.append(button('Copiar enlace', function () { copyLink(campaigns[2], arroyoInfo); }));
+  var arroyoOpenImage = el('a', '', 'Ver afiche');
+  arroyoOpenImage.href = pictureArroyo;
+  arroyoOpenImage.target = '_blank';
+  arroyoOpenImage.rel = 'noopener';
+  arroyoShareActions.append(arroyoOpenImage);
+  arroyoShare.append(arroyoShareActions);
+  arroyoInfo.append(arroyoShare);
+  arroyoHolder.append(arroyoImageCol, arroyoInfo);
   arroyoForm.addEventListener('submit', function (event) {
     event.preventDefault();
     if (!arroyoForm.reportValidity()) return;
@@ -340,7 +358,7 @@
     document.body.classList.remove('cp-modal-open');
     if (selected && selected.id === 'cyberweek') cyberHolder.append(previous);
     else if (selected && selected.id === 'pena-rio-nos-une') penaHolder.append(imageCol, infoCol);
-    else if (selected && selected.id === 'arroyo-las-conchas') arroyoHolder.append(arroyoInfo);
+    else if (selected && selected.id === 'arroyo-las-conchas') arroyoHolder.append(arroyoImageCol, arroyoInfo);
     content.replaceChildren();
     selected = null;
     if (window.location.hash.startsWith('#campana-')) history.replaceState(null, '', site);
