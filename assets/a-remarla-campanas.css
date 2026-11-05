@@ -1,0 +1,48 @@
+/* A Remarla · Carrusel de campañas. No modifica los afiches originales. */
+#campanas-remarla{background:linear-gradient(150deg,#082d43,#15304d 55%,#193a4d);color:#f5ffff!important; padding:32px clamp(16px,4vw,48px)!important;border-bottom:1px solid #3c8795}
+#campanas-remarla *{box-sizing:border-box}
+#campanas-remarla .cp-heading{display:flex;justify-content:space-between;align-items:end;gap:12px;flex-wrap:wrap}
+#campanas-remarla .cp-heading h2{color:#fff!important;margin:7px 0!important;font-size:clamp(1.8rem,4vw,2.75rem)}
+#campanas-remarla .cp-eyebrow{color:#85ffee!important;font-weight:900;letter-spacing:.12em;font-size:.8rem}
+#campanas-remarla .cp-description{color:#d3eaf1!important;line-height:1.5}
+#campanas-remarla .cp-controls{display:flex;justify-content:space-between;align-items:center;gap:9px;margin:17px 0 8px;flex-wrap:wrap}
+#campanas-remarla .cp-tabs{display:flex;gap:8px}
+#campanas-remarla .cp-tabs button,#campanas-remarla .cp-nav button{min-height:44px;padding:9px 14px;border:1px solid #6cc7d1;border-radius:11px;background:#164c64!important;color:white!important;font-weight:800}
+#campanas-remarla .cp-tabs button[aria-pressed="true"]{color:#063548!important;background:#a4fff1!important}
+#campanas-remarla .cp-nav{display:flex;gap:8px}
+#campanas-remarla .cp-track{display:flex;gap:15px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:thin;padding:11px 1px 19px}
+#campanas-remarla .cp-card{flex:0 0 min(73vw,278px);scroll-snap-align:start;overflow:hidden;border:1px solid #79bbc4;border-radius:17px;background:#0b354a;box-shadow:0 14px 31px #05182777}
+#campanas-remarla .cp-card button{display:block;width:100%;padding:0;border:0;background:transparent!important;text-align:left;color:white!important;cursor:pointer}
+#campanas-remarla .cp-card img{display:block;width:100%;height:305px;object-fit:contain;background:#092a3b}
+#campanas-remarla .cp-card-meta{display:grid;gap:7px;padding:14px}
+#campanas-remarla .cp-card-meta strong{font-size:1.06rem;color:#fff!important}
+#campanas-remarla .cp-card-meta small{color:#c3e6ee!important}
+#campanas-remarla .cp-badge{width:max-content;border-radius:999px;background:#98ffea;color:#083b4a;padding:5px 10px;font-size:.73rem;font-weight:900}
+#campanas-remarla .cp-badge.cp-expired{background:#bfc8cf;color:#153040}
+#campanas-remarla .cp-cta{color:#92fff2;font-weight:900}
+#campanas-remarla .cp-empty{color:#d5e9ee;min-height:75px;display:flex;align-items:center}
+#campaign-overlay[hidden],#campaign-overlay [hidden]{display:none!important}
+#campaign-overlay{position:fixed;z-index:2147480000;inset:0;padding:clamp(5px,2vw,24px);background:rgba(0,14,25,.77);backdrop-filter:blur(12px);display:grid;place-items:center}
+#campaign-overlay *{box-sizing:border-box}
+#campaign-dialog{max-height:calc(100dvh - 12px);width:min(1040px,100%);display:flex;flex-direction:column;overflow:hidden;border:1px solid #8ae8e1;border-radius:20px;background:#082f43;box-shadow:0 30px 90px #000d}
+#campaign-dialog .cp-dialog-head{display:flex;align-items:center;justify-content:space-between;gap:8px;background:#062d40;border-bottom:1px solid #488c97;padding:10px 13px}
+#campaign-dialog .cp-dialog-head strong{color:#fff!important}
+#campaign-dialog .cp-dialog-head button{border:1px solid #8cd9d8;border-radius:9px;background:#12485f!important;color:#fff!important;min-height:44px;padding:8px 12px;cursor:pointer}
+#campaign-dialog .cp-dialog-content{overflow:auto;overscroll-behavior:contain;scrollbar-width:thin}
+#campaign-dialog #cyberweek-sup{margin:0!important;padding:24px!important;max-width:none!important}
+#campaign-dialog #cyberweek-sup .section-head h2{font-size:clamp(1.8rem,4.4vw,3.1rem)!important}
+#campaign-dialog .cp-pena{padding:18px;display:grid;grid-template-columns:minmax(0,.95fr) minmax(0,1fr);gap:22px;color:#fff!important}
+#campaign-dialog .cp-pena img{display:block;width:100%;max-height:76vh;height:auto;object-fit:contain;background:#082532;border-radius:12px}
+#campaign-dialog .cp-pena h2{margin:0 0 12px!important;font-size:clamp(1.6rem,3vw,2.4rem)!important;color:#fff!important}
+#campaign-dialog .cp-pena p{line-height:1.55;color:#d2eef4!important}
+#campaign-dialog .cp-field{display:grid;gap:6px;margin:10px 0;font-weight:800;color:#fff!important}
+#campaign-dialog .cp-field input,#campaign-dialog .cp-field textarea,#campaign-dialog .cp-field select{width:100%;min-height:48px;background:white!important;color:#172c3c!important;border:1px solid #82cdd7;border-radius:9px;padding:11px;opacity:1}
+#campaign-dialog .cp-two{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+#campaign-dialog .cp-submit{width:100%;min-height:51px;background:#85f8e1!important;color:#063544!important;font-weight:900;border:0;border-radius:11px;margin-top:12px;padding:12px}
+#campaign-dialog .cp-share{margin-top:20px;border-top:1px solid #5b8796;padding-top:15px}
+#campaign-dialog .cp-share-actions{display:flex;flex-wrap:wrap;gap:9px}
+#campaign-dialog .cp-share-actions button,#campaign-dialog .cp-share-actions a{display:inline-flex;align-items:center;justify-content:center;border:1px solid #94d9e3;border-radius:10px;background:#17485e!important;color:white!important;text-decoration:none;min-height:44px;padding:10px 13px;font-weight:800;cursor:pointer}
+#campaign-dialog .cp-status{font-size:.84rem!important;min-height:1.3em;color:#a4fff4!important}
+body.cp-modal-open{overflow:hidden}
+@media(max-width:760px){#campaign-dialog .cp-pena{grid-template-columns:1fr;gap:14px;padding:13px}#campaign-dialog .cp-two{grid-template-columns:1fr}#campaign-dialog #cyberweek-sup{padding:15px!important}#campaign-overlay{padding:4px}#campaign-dialog{max-height:calc(100dvh - 8px)}#campaign-dialog .cp-dialog-head{padding:8px}#campaign-dialog .cp-dialog-head button{padding:8px}#campanas-remarla{padding:23px 13px!important}}
+@media(prefers-reduced-motion:reduce){#campanas-remarla .cp-track{scroll-behavior:auto}}
