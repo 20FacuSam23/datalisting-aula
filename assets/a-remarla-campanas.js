@@ -9,7 +9,8 @@
   var picturePena = '../assets/a-remarla-pena-rio-nos-une-2026.jpg';
   var campaigns = [
     { id: 'cyberweek', title: 'Cyber Week · Curso SUP', type: 'Promoción', starts: '2026-11-02T00:00:00-03:00', expires: '2026-11-04T23:59:59-03:00', date: 'Del 2 al 4 de noviembre', photo: pictureCyber, file: 'a-remarla-cybersup-redes-2026.jpg' },
-    { id: 'pena-rio-nos-une', title: 'Peña · El Río Nos Une', type: 'Evento', starts: '2026-11-04T00:00:00-03:00', expires: '2026-11-13T23:59:59-03:00', date: 'Viernes 13 de noviembre · 19:00', photo: picturePena, file: 'a-remarla-pena-rio-nos-une-2026.jpg' }
+    { id: 'pena-rio-nos-une', title: 'Peña · El Río Nos Une', type: 'Evento', starts: '2026-11-04T00:00:00-03:00', expires: '2026-11-13T23:59:59-03:00', date: 'Viernes 13 de noviembre · 19:00', photo: picturePena, file: 'a-remarla-pena-rio-nos-une-2026.jpg' },
+    { id: 'arroyo-las-conchas', title: 'Paseo guiado · Arroyo Las Conchas', type: 'Evento', starts: '2026-11-05T00:00:00-03:00', expires: '2026-11-09T23:59:59-03:00', date: 'Lunes 9 de noviembre · 10:00 a 13:00', photo: null, file: null }
   ];
   var now = function () { return Date.now(); };
   var active = function (item) { return now() >= Date.parse(item.starts) && now() <= Date.parse(item.expires); };
@@ -174,7 +175,56 @@
   share.append(shareActions, statusLine);
   infoCol.append(share);
   penaHolder.append(imageCol, infoCol);
-  var holders = { cyberweek: cyberHolder, 'pena-rio-nos-une': penaHolder };
+  // Paseo guiado. No se añade una imagen ficticia: el afiche original puede incorporarse cuando se reciba.
+  var arroyoHolder = el('div', 'cp-pena');
+  var arroyoInfo = el('div');
+  arroyoInfo.append(el('span', 'cp-eyebrow', 'PASEO GUIADO · KAYAK Y SUP'), el('h2', '', 'Arroyo Las Conchas'));
+  arroyoInfo.append(el('p', '', 'Lunes 9 de noviembre de 2026 · 10:00 a 13:00 hs · Parque General San Martín, Paraná.'));
+  arroyoInfo.append(el('p', '', 'Punto de encuentro: camino de acceso a la playa del camping del Parque.'));
+  arroyoInfo.append(el('p', '', 'Recorrido por el arroyo, sus recodos, afluentes y correderas, con una pausa para descansar y compartir en la costa.'));
+  var prices = el('ul');
+  [
+    'General: $25.000 por persona',
+    'Alumnos A Remarla: $20.000 por persona',
+    'Con kayak propio: $20.000 por persona',
+    'Incluye kayak y equipo, guiado y asistencia, y traslado de kayaks.',
+    'No incluye entrada al parque ni traslado hasta el parque.',
+    'Llevar ropa cómoda, protector solar, repelente, mate y algo para compartir.'
+  ].forEach(function (line) { prices.append(el('li', '', line)); });
+  arroyoInfo.append(prices);
+  var arroyoForm = el('form');
+  arroyoForm.id = 'arroyo-reserva';
+  var arroyoFields = el('div', 'cp-two');
+  arroyoFields.append(field('Nombre y apellido', 'nombre', true), field('WhatsApp de contacto', 'telefono', true, 'tel'));
+  arroyoForm.append(arroyoFields);
+  var modality = el('label', 'cp-field', 'Modalidad');
+  var modalitySelect = el('select');
+  modalitySelect.name = 'modalidad';
+  ['General · $25.000', 'Alumno AR · $20.000', 'Kayak propio · $20.000'].forEach(function (value) {
+    var option = el('option', '', value); option.value = value; modalitySelect.append(option);
+  });
+  modality.append(modalitySelect);
+  arroyoForm.append(modality, field('Consulta (opcional)', 'consulta', false, 'textarea'));
+  var arroyoSend = el('button', 'cp-submit', 'Solicitar reserva por WhatsApp');
+  arroyoSend.type = 'submit'; arroyoForm.append(arroyoSend);
+  var arroyoStatus = el('p', 'cp-status'); arroyoStatus.setAttribute('data-cp-status', '');
+  arroyoInfo.append(arroyoForm, arroyoStatus);
+  arroyoHolder.append(arroyoInfo);
+  arroyoForm.addEventListener('submit', function (event) {
+    event.preventDefault();
+    if (!arroyoForm.reportValidity()) return;
+    if (expired(campaigns[2])) { announce(arroyoInfo, 'Este evento ya finalizó.'); return; }
+    var data = new FormData(arroyoForm);
+    var lines = [
+      'Hola Guille, quiero reservar para el Paseo Guiado Arroyo Las Conchas del lunes 9 de noviembre, de 10 a 13 hs.',
+      'Nombre: ' + String(data.get('nombre') || '').trim(),
+      'WhatsApp: ' + String(data.get('telefono') || '').trim(),
+      'Modalidad: ' + String(data.get('modalidad') || ''),
+      'Consulta: ' + String(data.get('consulta') || '').trim()
+    ];
+    window.location.href = 'https://wa.me/5493434461280?text=' + encodeURIComponent(lines.filter(Boolean).join('\n'));
+  });
+  var holders = { cyberweek: cyberHolder, 'pena-rio-nos-une': penaHolder, 'arroyo-las-conchas': arroyoHolder };
 
   function render() {
     track.replaceChildren();
@@ -186,13 +236,13 @@
       var action = button('', function () { openModal(item); });
       action.setAttribute('aria-label', 'Ver ' + item.title);
       var img = el('img');
-      img.src = item.photo;
-      img.alt = 'Afiche original: ' + item.title;
-      img.loading = 'lazy';
+      if (item.photo) { img.src = item.photo; img.alt = 'Afiche original: ' + item.title; img.loading = 'lazy'; }
+      else { img.hidden = true; img.alt = ''; var description = el('div', 'cp-image-pending', 'Paseo guiado · Kayak y SUP'); action.append(description); }
       var meta = el('span', 'cp-card-meta');
       var badge = el('span', 'cp-badge' + (expired(item) ? ' cp-expired' : ''), expired(item) ? 'Finalizada' : item.type);
       meta.append(badge, el('strong', '', item.title), el('small', '', item.date), el('span', 'cp-cta', 'Ver detalles →'));
-      action.append(img, meta);
+      if (item.photo) action.append(img);
+      action.append(meta);
       card.append(action);
       track.append(card);
     });
@@ -216,6 +266,11 @@
       notice.textContent = ended ? 'Promoción finalizada el 4 de noviembre de 2026. El afiche sigue disponible para consultar y compartir.' : '';
       notice.hidden = !ended;
     }
+    if (item.id === 'arroyo-las-conchas') {
+      var endedArroyo = expired(item);
+      Array.from(arroyoForm.querySelectorAll('input,select,textarea,button[type=submit]')).forEach(function (input) { input.disabled = endedArroyo; });
+      announce(arroyoInfo, endedArroyo ? 'Este paseo ya finalizó.' : '');
+    }
     if (item.id === 'pena-rio-nos-une') {
       var endedPena = expired(item);
       Array.from(form.querySelectorAll('input,textarea,button[type=submit]')).forEach(function (input) { input.disabled = endedPena; });
@@ -229,6 +284,7 @@
     document.body.classList.remove('cp-modal-open');
     if (selected && selected.id === 'cyberweek') cyberHolder.append(previous);
     else if (selected && selected.id === 'pena-rio-nos-une') penaHolder.append(imageCol, infoCol);
+    else if (selected && selected.id === 'arroyo-las-conchas') arroyoHolder.append(arroyoInfo);
     content.replaceChildren();
     selected = null;
     if (window.location.hash.startsWith('#campana-')) history.replaceState(null, '', site);
