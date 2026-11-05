@@ -40,12 +40,6 @@
   section.id = 'campanas-remarla';
   section.setAttribute('data-section', 'inicio');
   section.setAttribute('aria-label', 'Campañas de A Remarla');
-  var heading = el('div', 'cp-heading');
-  var headingLeft = el('div');
-  headingLeft.append(el('h2', '', 'Eventos y promociones'));
-  heading.append(headingLeft);
-  section.append(heading);
-
   var track = el('div', 'cp-track');
   track.setAttribute('aria-label', 'Carrusel de campañas');
   var dots = el('div', 'cp-dots');
