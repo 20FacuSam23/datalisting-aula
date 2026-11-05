@@ -8,7 +8,7 @@
   var pictureCyber = '../assets/a-remarla-cybersup-redes-2026.jpg?v=20261103-final';
   var picturePena = '../assets/a-remarla-pena-rio-nos-une-2026.jpg';
   var campaigns = [
-    { id: 'cyberweek', title: 'Cyber Week · Curso SUP', type: 'Promoción', starts: '2026-11-02T00:00:00-03:00', expires: '2026-11-04T23:59:59-03:00', date: 'Del 2 al 4 de noviembre', photo: pictureCyber, file: 'a-remarla-cybersup-redes-2026.jpg' },
+    { id: 'cyberweek', title: 'Cyber Week · Curso SUP', type: 'Promoción', starts: '2026-11-02T00:00:00-03:00', expires: '2026-11-04T23:59:59-03:00', date: 'Del 2 al 4 de noviembre', visibleUntil: '2026-11-15T23:59:59-03:00', photo: pictureCyber, file: 'a-remarla-cybersup-redes-2026.jpg' },
     { id: 'pena-rio-nos-une', title: 'Peña · El Río Nos Une', type: 'Evento', starts: '2026-11-04T00:00:00-03:00', expires: '2026-11-13T23:59:59-03:00', date: 'Viernes 13 de noviembre · 19:00', photo: picturePena, file: 'a-remarla-pena-rio-nos-une-2026.jpg' },
     { id: 'arroyo-las-conchas', title: 'Paseo guiado · Arroyo Las Conchas', type: 'Evento', starts: '2026-11-05T00:00:00-03:00', expires: '2026-11-09T23:59:59-03:00', date: 'Lunes 9 de noviembre · 10:00 a 13:00', photo: null, file: null }
   ];
@@ -45,7 +45,7 @@
   var headingLeft = el('div');
   headingLeft.append(el('span', 'cp-eyebrow', 'A REMARLA · NOVEDADES'), el('h2', '', 'Eventos y promociones'), el('p', 'cp-description', 'Tocá el afiche para ver los detalles o deslizá para conocer las demás campañas.'));
   heading.append(headingLeft);
-  section.append(heading);
+  // Los afiches son el único contenido visible del carrusel, sin encabezados superpuestos.
 
   // Únicamente afiches completos, sin pestañas ni flechas.
   var track = el('div', 'cp-track');
@@ -220,13 +220,15 @@
   var holders = { cyberweek: cyberHolder, 'pena-rio-nos-une': penaHolder, 'arroyo-las-conchas': arroyoHolder };
 
   // Mantener siempre las tres campañas; la finalizada queda al final.
-  var ordered = campaigns.filter(function (item) { return !!item.photo; }).sort(function (a, b) {
+  // Mostrar también eventos sin afiche y conservar Cyber Week hasta el 15/11.
+  // La fecha de exhibición es independiente del vencimiento para reservar.
+  var ordered = campaigns.filter(function (item) { return now() <= Date.parse(item.visibleUntil || item.expires); }).sort(function (a, b) {
     return (expired(a) === expired(b) ? Date.parse(a.expires) - Date.parse(b.expires) : expired(a) ? 1 : -1);
   });
   function updateDots() {
     Array.from(dots.children).forEach(function (dot, index) {
       dot.setAttribute('aria-current', String(index === currentSlide));
-      dot.setAttribute('aria-label', 'Afiche ' + (index + 1) + ' de ' + ordered.length +
+      dot.setAttribute('aria-label', 'Campaña ' + (index + 1) + ' de ' + ordered.length +
         ': ' + ordered[index].title);
     });
   }
@@ -260,7 +262,14 @@
         img.loading = index === 0 ? 'eager' : 'lazy';
         action.append(img);
       } else {
-        action.append(el('div', 'cp-image-pending', item.title));
+        // No reemplazar los afiches entregados por Guille con una foto inventada.
+        // Hasta recibir el afiche original, mostrar la tercera campaña con sus datos reales.
+        var pending = el('div', 'cp-image-pending');
+        pending.append(el('small', 'cp-pending-label', 'PASEO GUIADO · KAYAK Y SUP'));
+        pending.append(el('strong', '', 'Arroyo Las Conchas'));
+        pending.append(el('span', '', 'Lunes 9 de noviembre · 10:00 a 13:00'));
+        pending.append(el('span', 'cp-pending-action', 'Ver detalles y reservar'));
+        action.append(pending);
       }
       card.append(action);
       track.append(card);
