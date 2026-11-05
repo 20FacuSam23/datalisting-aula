@@ -139,3 +139,28 @@ body.cp-modal-open{overflow:hidden}
 @media(prefers-reduced-motion:reduce){
   #campanas-remarla .cp-card{transition:none}
 }
+
+/* Ajuste final: ocupar solo el alto real del carrusel y centrar los afiches. */
+#campanas-remarla.section{
+  min-height:0!important;
+  height:auto!important;
+  padding:12px 0 14px!important;
+}
+#campanas-remarla .cp-heading{display:none!important}
+#campanas-remarla .cp-track{
+  --cp-card-width:clamp(215px,27vw,310px);
+  padding-top:6px!important;
+  padding-bottom:5px!important;
+}
+#campanas-remarla .cp-dots{
+  min-height:22px!important;
+  margin:4px auto 0!important;
+}
+@media(max-width:650px){
+  #campanas-remarla.section{padding:10px 0 13px!important}
+  #campanas-remarla .cp-track{
+    --cp-card-width:min(78vw,310px);
+    padding-top:5px!important;
+    padding-bottom:4px!important;
+  }
+}
