@@ -18,7 +18,8 @@
   var site = new URL('./', window.location.href.split('#')[0]).href;
   var selected = null;
   var lastFocus = null;
-  var tab = 'active';
+  var currentSlide = 0;
+  var rotation = null;
 
   function el(tag, cls, content) {
     var n = document.createElement(tag);
@@ -42,26 +43,18 @@
   section.setAttribute('aria-label', 'Campañas de A Remarla');
   var heading = el('div', 'cp-heading');
   var headingLeft = el('div');
-  headingLeft.append(el('span', 'cp-eyebrow', 'A REMARLA · NOVEDADES'), el('h2', '', 'Eventos y promociones'), el('p', 'cp-description', 'Elegí una campaña para ver su información, consultar y compartir el afiche.'));
+  headingLeft.append(el('span', 'cp-eyebrow', 'A REMARLA · NOVEDADES'), el('h2', '', 'Eventos y promociones'), el('p', 'cp-description', 'Tocá el afiche para ver los detalles o deslizá para conocer las demás campañas.'));
   heading.append(headingLeft);
   section.append(heading);
 
-  var controls = el('div', 'cp-controls');
-  var tabs = el('div', 'cp-tabs');
-  var activeBtn = button('Vigentes', function () { tab = 'active'; render(); });
-  var expiredBtn = button('Anteriores', function () { tab = 'expired'; render(); });
-  activeBtn.setAttribute('aria-pressed', 'true');
-  expiredBtn.setAttribute('aria-pressed', 'false');
-  tabs.append(activeBtn, expiredBtn);
-  var nav = el('div', 'cp-nav');
+  // Únicamente afiches completos, sin pestañas ni flechas.
   var track = el('div', 'cp-track');
-  track.setAttribute('aria-label', 'Carrusel de campañas');
-  nav.append(
-    button('←', function () { track.scrollBy({ left: -300, behavior: 'smooth' }); }),
-    button('→', function () { track.scrollBy({ left: 300, behavior: 'smooth' }); })
-  );
-  controls.append(tabs, nav);
-  section.append(controls, track);
+  track.setAttribute('aria-label', 'Carrusel de afiches de A Remarla');
+  track.tabIndex = 0;
+  var dots = el('div', 'cp-dots');
+  dots.setAttribute('role', 'group');
+  dots.setAttribute('aria-label', 'Elegir afiche');
+  section.append(track, dots);
   main.insertBefore(section, previous);
 
   var overlay = el('div');
@@ -226,30 +219,79 @@
   });
   var holders = { cyberweek: cyberHolder, 'pena-rio-nos-une': penaHolder, 'arroyo-las-conchas': arroyoHolder };
 
+  // Mantener siempre las tres campañas; la finalizada queda al final.
+  var ordered = campaigns.slice().sort(function (a, b) {
+    return (expired(a) === expired(b) ? Date.parse(a.expires) - Date.parse(b.expires) : expired(a) ? 1 : -1);
+  });
+  function updateDots() {
+    Array.from(dots.children).forEach(function (dot, index) {
+      dot.setAttribute('aria-current', String(index === currentSlide));
+      dot.setAttribute('aria-label', 'Afiche ' + (index + 1) + ' de ' + ordered.length +
+        ': ' + ordered[index].title);
+    });
+  }
+  function slideTo(index, smooth) {
+    if (!ordered.length) return;
+    currentSlide = (index + ordered.length) % ordered.length;
+    track.scrollTo({ left: currentSlide * track.clientWidth, behavior: smooth ? 'smooth' : 'instant' });
+    updateDots();
+  }
+  function stopRotation() {
+    if (rotation != null) { clearInterval(rotation); rotation = null; }
+  }
+  function startRotation() {
+    stopRotation();
+    if (overlay.hidden && !document.hidden && ordered.length > 1 && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      rotation = setInterval(function () { slideTo(currentSlide + 1, true); }, 6000);
+    }
+  }
   function render() {
     track.replaceChildren();
-    activeBtn.setAttribute('aria-pressed', String(tab === 'active'));
-    expiredBtn.setAttribute('aria-pressed', String(tab === 'expired'));
-    var results = campaigns.filter(function (item) { return tab === 'expired' ? expired(item) : active(item); });
-    results.forEach(function (item) {
+    dots.replaceChildren();
+    ordered.forEach(function (item, index) {
       var card = el('article', 'cp-card');
       var action = button('', function () { openModal(item); });
-      action.setAttribute('aria-label', 'Ver ' + item.title);
-      var img = el('img');
-      if (item.photo) { img.src = item.photo; img.alt = 'Afiche original: ' + item.title; img.loading = 'lazy'; }
-      else { img.hidden = true; img.alt = ''; var description = el('div', 'cp-image-pending', 'Paseo guiado · Kayak y SUP'); action.append(description); }
-      var meta = el('span', 'cp-card-meta');
-      var badge = el('span', 'cp-badge' + (expired(item) ? ' cp-expired' : ''), expired(item) ? 'Finalizada' : item.type);
-      meta.append(badge, el('strong', '', item.title), el('small', '', item.date), el('span', 'cp-cta', 'Ver detalles →'));
-      if (item.photo) action.append(img);
-      action.append(meta);
+      action.setAttribute('aria-label', 'Abrir publicación completa de ' + item.title +
+        (expired(item) ? ', finalizada' : ''));
+      if (item.photo) {
+        var img = el('img');
+        img.src = item.photo;
+        img.alt = 'Afiche original: ' + item.title;
+        img.loading = index === 0 ? 'eager' : 'lazy';
+        action.append(img);
+      } else {
+        action.append(el('div', 'cp-image-pending', item.title));
+      }
       card.append(action);
       track.append(card);
+      var dot = button('', function () { slideTo(index, true); startRotation(); });
+      dot.setAttribute('title', item.title);
+      dots.append(dot);
     });
-    if (!results.length) track.append(el('p', 'cp-empty', tab === 'expired' ? 'Todavía no hay campañas finalizadas.' : 'No hay campañas activas por el momento.'));
-    nav.hidden = results.length <= 1;
+    updateDots();
+    slideTo(0, false);
+    startRotation();
   }
+  // Swipe táctil nativo con CSS scroll-snap. La reproducción se reanuda tras interactuar.
+  track.addEventListener('pointerdown', stopRotation);
+  track.addEventListener('pointerup', startRotation);
+  track.addEventListener('pointercancel', startRotation);
+  track.addEventListener('scroll', function () {
+    if (!track.clientWidth) return;
+    var index = Math.max(0, Math.min(ordered.length - 1, Math.round(track.scrollLeft / track.clientWidth)));
+    if (index !== currentSlide) { currentSlide = index; updateDots(); }
+  }, { passive: true });
+  track.addEventListener('keydown', function (event) {
+    if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
+      event.preventDefault();
+      slideTo(currentSlide + (event.key === 'ArrowRight' ? 1 : -1), true);
+      startRotation();
+    }
+  });
+  window.addEventListener('resize', function () { slideTo(currentSlide, false); });
+  document.addEventListener('visibilitychange', function () { if (document.hidden) stopRotation(); else startRotation(); });
   function openModal(item) {
+    stopRotation();
     selected = item;
     lastFocus = document.activeElement;
     headingTitle.textContent = item.title;
@@ -281,6 +323,7 @@
   }
   function closeModal() {
     overlay.hidden = true;
+    startRotation();
     document.body.classList.remove('cp-modal-open');
     if (selected && selected.id === 'cyberweek') cyberHolder.append(previous);
     else if (selected && selected.id === 'pena-rio-nos-une') penaHolder.append(imageCol, infoCol);
