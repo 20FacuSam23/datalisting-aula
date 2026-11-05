@@ -54,7 +54,7 @@
   var dots = el('div', 'cp-dots');
   dots.setAttribute('role', 'group');
   dots.setAttribute('aria-label', 'Elegir afiche');
-  section.append(track, dots);
+  section.append(dots, track);
   main.insertBefore(section, previous);
 
   var overlay = el('div');
