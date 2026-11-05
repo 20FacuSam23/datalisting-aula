@@ -84,3 +84,15 @@ body.cp-modal-open{overflow:hidden}
 #campanas-remarla .cp-track,#campanas-remarla .cp-card,#campanas-remarla .cp-card button,#campanas-remarla .cp-card img{border:0!important;box-shadow:none!important;outline-offset:3px}
 #campanas-remarla .cp-dots{padding:6px 0 14px!important}
 #campanas-remarla .cp-card img{border-radius:0!important}
+
+/* Afiche aún no entregado: tercera campaña identificable, sin imagen inventada. */
+#campanas-remarla .cp-image-pending{
+ display:flex!important;flex-direction:column;align-items:center;justify-content:center;
+ gap:14px!important;padding:clamp(20px,4vw,55px)!important;text-align:center;
+ color:#fff!important;background:linear-gradient(145deg,#07475c,#09263c)!important;
+ font-size:clamp(1.2rem,3.5vw,2.1rem)!important;
+}
+#campanas-remarla .cp-image-pending strong{color:#fff!important;font-size:clamp(1.5rem,4vw,2.6rem)!important;line-height:1.2}
+#campanas-remarla .cp-image-pending span{color:#ddf4f7!important;font-size:clamp(.9rem,2.4vw,1.3rem)!important}
+#campanas-remarla .cp-image-pending .cp-pending-label{color:#89faeb!important;letter-spacing:.12em;font-size:.78rem!important}
+#campanas-remarla .cp-image-pending .cp-pending-action{color:#8cfff2!important;font-weight:900;margin-top:8px}
