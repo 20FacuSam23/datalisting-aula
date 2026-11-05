@@ -42,7 +42,7 @@
   section.setAttribute('aria-label', 'Campañas de A Remarla');
   var heading = el('div', 'cp-heading');
   var headingLeft = el('div');
-  headingLeft.append(el('span', 'cp-eyebrow', 'A REMARLA · NOVEDADES'), el('h2', '', 'Eventos y promociones'), el('p', 'cp-description', 'Elegí una campaña para ver su información, consultar y compartir el afiche.'));
+  headingLeft.append(el('h2', '', 'Eventos y promociones'));
   heading.append(headingLeft);
   section.append(heading);
 
@@ -177,7 +177,10 @@
     var slides = Array.from(track.querySelectorAll('.cp-card'));
     if (!slides.length) return;
     currentSlide = (index + slides.length) % slides.length;
-    track.scrollTo({ left: slides[currentSlide].offsetLeft - track.offsetLeft, behavior: instant ? 'auto' : 'smooth' });
+    var rect = slides[currentSlide].getBoundingClientRect();
+    var trackRect = track.getBoundingClientRect();
+    var target = track.scrollLeft + rect.left - trackRect.left - (track.clientWidth - rect.width) / 2;
+    track.scrollTo({ left: Math.max(0, target), behavior: instant ? 'auto' : 'smooth' });
     updateDots();
   }
   function stopAuto() {
@@ -190,10 +193,7 @@
     if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     slideTimer = setInterval(function () {
       if (!overlay.hidden || document.hidden) return;
-      if (campaigns.some(function (c) { return Date.now() > Date.parse(c.expires) && track.querySelector('[data-cp-id="' + c.id + '"]'); })) {
-        render();
-        return;
-      }
+      if (campaigns.filter(function (c) { return Date.now() >= Date.parse(c.starts); }).length !== dots.children.length) { render(); return; }
       goToSlide(currentSlide + 1);
     }, 6000);
   }
@@ -201,28 +201,30 @@
     stopAuto();
     track.replaceChildren();
     dots.replaceChildren();
-    var results = campaigns.filter(active);
+    // Mostrar todas las campañas ya publicadas, incluso las vencidas:
+    // sus reservas se bloquean en el detalle, nunca desaparecen del carrusel.
+    var results = campaigns.filter(function (item) {
+      return now() >= Date.parse(item.starts);
+    }).sort(function (a, b) { return Number(active(b)) - Number(active(a)); });
     currentSlide = 0;
     results.forEach(function (item, index) {
       var card = el('article', 'cp-card');
       card.setAttribute('data-cp-id', item.id);
       var action = button('', function () { openModal(item); });
-      action.setAttribute('aria-label', 'Ver ' + item.title);
+      action.setAttribute('aria-label', 'Abrir ' + item.title + (expired(item) ? ', campaña finalizada' : ''));
       var img = el('img');
       img.src = item.photo;
       img.alt = 'Afiche original: ' + item.title;
       img.loading = 'lazy';
-      var meta = el('span', 'cp-card-meta');
-      var badge = el('span', 'cp-badge', item.type);
-      meta.append(badge, el('strong', '', item.title), el('small', '', item.date), el('span', 'cp-cta', 'Ver detalles →'));
-      action.append(img, meta);
+      // Solo la imagen original, sin textos ni botones adicionales sobre el afiche.
+      action.append(img);
       card.append(action);
       track.append(card);
       var dot = button('', function () { stopAuto(); goToSlide(index); startAuto(); });
       dot.setAttribute('aria-label', 'Ir a ' + item.title);
       dots.append(dot);
     });
-    if (!results.length) track.append(el('p', 'cp-empty', 'No hay campañas activas por el momento.'));
+    if (!results.length) track.append(el('p', 'cp-empty', 'No hay campañas disponibles.'));
     dots.hidden = !results.length;
     updateDots();
     goToSlide(0, true);
@@ -232,8 +234,10 @@
     var slides = Array.from(track.querySelectorAll('.cp-card'));
     if (!slides.length) return;
     var index = 0, distance = Infinity;
+    var center = track.getBoundingClientRect().left + track.clientWidth / 2;
     slides.forEach(function (node, i) {
-      var d = Math.abs(node.offsetLeft - track.offsetLeft - track.scrollLeft);
+      var rect = node.getBoundingClientRect();
+      var d = Math.abs(rect.left + rect.width / 2 - center);
       if (d < distance) { distance = d; index = i; }
     });
     currentSlide = index;
