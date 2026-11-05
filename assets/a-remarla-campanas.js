@@ -3,10 +3,11 @@
   'use strict';
   var previous = document.getElementById('cyberweek-sup');
   var main = document.getElementById('contenido');
-  if (!previous || !main || document.getElementById('campanas-remarla')) return;
+  if (!previous || !main) return;
+  var existingSection = document.getElementById('campanas-remarla');
 
-  var pictureCyber = '../assets/a-remarla-cybersup-redes-2026.jpg?v=20261103-final';
-  var picturePena = '../assets/a-remarla-pena-rio-nos-une-2026.jpg';
+  var pictureCyber = new URL('../assets/a-remarla-cybersup-redes-2026.jpg?v=20261105-images5', document.baseURI).href;
+  var picturePena = new URL('../assets/a-remarla-pena-rio-nos-une-2026.jpg?v=20261105-images5', document.baseURI).href;
   var campaigns = [
     { id: 'cyberweek', title: 'Cyber Week · Curso SUP', type: 'Promoción', starts: '2026-11-02T00:00:00-03:00', expires: '2026-11-04T23:59:59-03:00', date: 'Del 2 al 4 de noviembre', visibleUntil: '2026-11-15T23:59:59-03:00', photo: pictureCyber, file: 'a-remarla-cybersup-redes-2026.jpg' },
     { id: 'pena-rio-nos-une', title: 'Peña · El Río Nos Une', type: 'Evento', starts: '2026-11-04T00:00:00-03:00', expires: '2026-11-13T23:59:59-03:00', date: 'Viernes 13 de noviembre · 19:00', photo: picturePena, file: 'a-remarla-pena-rio-nos-une-2026.jpg' },
@@ -37,7 +38,7 @@
     var s = container.querySelector('[data-cp-status]');
     if (s) s.textContent = message;
   }
-  var section = el('section', 'section view');
+  var section = existingSection || el('section', 'section view');
   section.id = 'campanas-remarla';
   section.setAttribute('data-section', 'inicio');
   section.setAttribute('aria-label', 'Campañas de A Remarla');
@@ -48,14 +49,16 @@
   // Los afiches son el único contenido visible del carrusel, sin encabezados superpuestos.
 
   // Únicamente afiches completos, sin pestañas ni flechas.
-  var track = el('div', 'cp-track');
+  var track = section.querySelector('.cp-track') || el('div', 'cp-track');
   track.setAttribute('aria-label', 'Carrusel de afiches de A Remarla');
   track.tabIndex = 0;
-  var dots = el('div', 'cp-dots');
+  var dots = section.querySelector('.cp-dots') || el('div', 'cp-dots');
   dots.setAttribute('role', 'group');
   dots.setAttribute('aria-label', 'Elegir afiche');
-  section.append(dots, track);
-  main.insertBefore(section, previous);
+  if (!existingSection) {
+    section.append(dots, track);
+    main.insertBefore(section, previous);
+  }
 
   var overlay = el('div');
   overlay.id = 'campaign-overlay';
