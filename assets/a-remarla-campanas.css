@@ -78,3 +78,9 @@ body.cp-modal-open{overflow:hidden}
  #campanas-remarla .cp-track{scroll-behavior:auto!important}
  #campanas-remarla .cp-dots button{transition:none}
 }
+
+/* Presentación limpia: no bordes de color ni marcos sobre los afiches. */
+#campanas-remarla{border:0!important}
+#campanas-remarla .cp-track,#campanas-remarla .cp-card,#campanas-remarla .cp-card button,#campanas-remarla .cp-card img{border:0!important;box-shadow:none!important;outline-offset:3px}
+#campanas-remarla .cp-dots{padding:6px 0 14px!important}
+#campanas-remarla .cp-card img{border-radius:0!important}
