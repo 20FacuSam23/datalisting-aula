@@ -46,3 +46,8 @@
 body.cp-modal-open{overflow:hidden}
 @media(max-width:760px){#campaign-dialog .cp-pena{grid-template-columns:1fr;gap:14px;padding:13px}#campaign-dialog .cp-two{grid-template-columns:1fr}#campaign-dialog #cyberweek-sup{padding:15px!important}#campaign-overlay{padding:4px}#campaign-dialog{max-height:calc(100dvh - 8px)}#campaign-dialog .cp-dialog-head{padding:8px}#campaign-dialog .cp-dialog-head button{padding:8px}#campanas-remarla{padding:23px 13px!important}}
 @media(prefers-reduced-motion:reduce){#campanas-remarla .cp-track{scroll-behavior:auto}}
+/* Tarjeta informativa cuando el organizador todavía no proporcionó un afiche. */
+#campanas-remarla .cp-image-pending{display:flex;align-items:center;justify-content:center;min-height:305px;padding:22px;background:linear-gradient(145deg,#123d57,#136579);color:#fff;font-size:1.25rem;font-weight:900;text-align:center}
+#campaign-dialog .cp-pena:has(> :only-child){grid-template-columns:minmax(0,1fr)}
+#campaign-dialog .cp-pena > div > p,#campaign-dialog .cp-pena li{color:#e0f3f5!important;line-height:1.6}
+#campaign-dialog .cp-field textarea{min-height:76px;resize:vertical}
