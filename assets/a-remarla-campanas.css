@@ -56,3 +56,86 @@ body.cp-modal-open{overflow:hidden}
 #campanas-remarla .cp-dots button[aria-current="true"]{background:#9bffee!important;border-color:#9bffee!important;transform:scale(1.23)}
 #campanas-remarla .cp-dots button:focus-visible{outline:2px solid white!important;outline-offset:5px}
 @media(prefers-reduced-motion:reduce){#campanas-remarla .cp-track{scroll-behavior:auto}}
+
+/* Carrusel visual compacto: solo los afiches, sin textos ni leyendas. */
+#campanas-remarla{
+  padding:clamp(15px,2vw,25px) 0 clamp(17px,3vw,32px)!important;
+  overflow:hidden;
+}
+#campanas-remarla .cp-heading{
+  width:min(1150px,100%);
+  margin:0 auto 8px;
+  padding:0 clamp(18px,4vw,40px);
+}
+#campanas-remarla .cp-heading h2{
+  font-size:clamp(1.35rem,2.7vw,2.1rem)!important;
+  line-height:1.2;
+  margin:0 0 6px!important;
+}
+#campanas-remarla .cp-description,#campanas-remarla .cp-eyebrow,#campanas-remarla .cp-card-meta{
+  display:none!important;
+}
+#campanas-remarla .cp-track{
+  --cp-card-width:clamp(185px,22vw,275px);
+  width:100%;
+  display:flex;
+  gap:14px;
+  align-items:center;
+  padding:9px max(18px,calc((100% - var(--cp-card-width))/2)) 8px!important;
+  overflow-x:auto;
+  overscroll-behavior-x:contain;
+  scroll-snap-type:x mandatory;
+  scroll-padding-inline:50%;
+  scrollbar-width:none;
+}
+#campanas-remarla .cp-card{
+  flex:0 0 var(--cp-card-width)!important;
+  width:var(--cp-card-width);
+  border:1px solid rgba(143,231,222,.65);
+  border-radius:14px;
+  scroll-snap-align:center;
+  background:#0c3b4e;
+  box-shadow:0 9px 22px rgba(0,15,28,.24);
+  transition:box-shadow .18s;
+}
+#campanas-remarla .cp-card:hover{
+  box-shadow:0 12px 29px rgba(0,15,28,.4);
+}
+#campanas-remarla .cp-card button{
+  width:100%;
+  display:block;
+  min-height:0!important;
+  line-height:0;
+  border:0!important;
+  border-radius:14px;
+  overflow:hidden;
+  background:#0c3b4e!important;
+}
+#campanas-remarla .cp-card img{
+  display:block;
+  width:100%;
+  height:auto;
+  aspect-ratio:4 / 5;
+  object-fit:contain;
+  background:#0c3b4e;
+}
+#campanas-remarla .cp-dots{
+  margin:9px auto 0!important;
+  padding:0 10px;
+}
+@media(max-width:650px){
+  #campanas-remarla{padding-top:17px!important;padding-bottom:17px!important}
+  #campanas-remarla .cp-heading{margin-bottom:4px}
+  #campanas-remarla .cp-track{
+    --cp-card-width:min(68vw,265px);
+    gap:12px;
+    padding-top:8px!important;
+    padding-bottom:5px!important;
+  }
+  #campanas-remarla .cp-card{border-radius:13px}
+  #campanas-remarla .cp-card button{border-radius:13px}
+  #campanas-remarla .cp-dots{margin-top:6px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  #campanas-remarla .cp-card{transition:none}
+}
