@@ -109,13 +109,8 @@
   var cyberHolder = el('div');
   cyberHolder.append(previous);
   var cyberForm = previous.querySelector('#cyberweek-form');
-  if (cyberForm) cyberForm.addEventListener('submit', function (event) {
-    if (expired(campaigns[0])) {
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      alert('Esta promoción finalizó el 4 de noviembre de 2026.');
-    }
-  }, true);
+  // La promoción vencida se mantiene visible. Su formulario admite únicamente consultas
+  // por nuevas fechas: el mensaje de WhatsApp aclara que los descuentos ya no rigen.
   var penaHolder = el('div', 'cp-pena');
   var imageCol = el('div');
   var penaImage = el('img');
@@ -333,10 +328,14 @@
     content.scrollTop = 0;
     if (item.id === 'cyberweek' && cyberForm) {
       var ended = expired(item);
-      Array.from(cyberForm.querySelectorAll('input,select,button.cw-book')).forEach(function (input) { input.disabled = ended; });
+      // No bloquear campos: incluso vencida se puede consultar por próximas fechas,
+      // sin aceptar reservas ni asegurar precios de Cyber Week.
+      Array.from(cyberForm.querySelectorAll('input,select,button.cw-book')).forEach(function (input) { input.disabled = false; });
+      var bookButton = cyberForm.querySelector('button.cw-book');
+      if (bookButton) bookButton.textContent = ended ? 'Consultar nuevas fechas por WhatsApp →' : 'Solicitar reserva por WhatsApp →';
       var notice = previous.querySelector('[data-cp-expiry]');
       if (!notice) { notice = el('p', 'cw-note'); notice.setAttribute('data-cp-expiry', ''); cyberForm.insertBefore(notice, cyberForm.firstChild); }
-      notice.textContent = ended ? 'Promoción finalizada el 4 de noviembre de 2026. El afiche sigue disponible para consultar y compartir.' : '';
+      notice.textContent = ended ? 'La promoción finalizó el 4 de noviembre de 2026. Podés enviar una consulta por nuevas fechas y tarifas vigentes; los descuentos Cyber Week ya no están disponibles.' : '';
       notice.hidden = !ended;
     }
     if (item.id === 'arroyo-las-conchas') {
