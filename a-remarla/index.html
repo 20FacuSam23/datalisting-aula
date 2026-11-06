@@ -325,7 +325,7 @@
           <label class="cw-field">Cantidad de asistentes<select name="personas" required><option value="1">1 persona</option><option value="2">2 personas</option></select></label>
         </div>
         <button class="cw-book" type="submit">Solicitar reserva por WhatsApp →</button>
-        <p class="cw-note">Reserva con seña de <strong>$10.000 por transferencia</strong>. El envío de este formulario abre WhatsApp para solicitar tu lugar; el cupo se confirma con la escuela luego de acreditar la seña. Consultá las condiciones de la promoción 2×1.</p>
+        <p class="cw-note">Reserva con seña de <strong>$10.000 por transferencia</strong>. Durante la vigencia de la promoción, el envío abre WhatsApp para solicitar tu lugar; el cupo se confirma con la escuela luego de acreditar la seña. Si ya venció, podrás consultar nuevas fechas y tarifas. Consultá las condiciones de la promoción 2×1.</p>
         <aside id="cyberweek-share" aria-label="Compartir promoción Cyber Week">
           <h4>Compartí la promoción</h4>
           <p>Compartí la imagen en Instagram, en el estado de WhatsApp o en otra app.</p>
@@ -527,27 +527,39 @@
     const data = new FormData(form);
     const offer = String(data.get('oferta') || '');
     const people = String(data.get('personas') || '1');
-    if (offer.startsWith('Vienen 2') && people !== '2') {
+    const ended = Date.now() > Date.parse('2026-11-04T23:59:59-03:00');
+    if (!ended && offer.startsWith('Vienen 2') && people !== '2') {
       alert('La oferta 2x1 es para dos personas. Seleccioná 2 asistentes o elegí otra modalidad.');
       return;
     }
-    const message = [
-      'Hola Guille, quiero solicitar una reserva para el Cyber Week de A Remarla.',
-      'Curso: SUP (4 clases de 1 hora y media)',
-      'Promoción: ' + offer,
-      'Nombre: ' + String(data.get('nombre') || '').trim(),
-      'WhatsApp: ' + String(data.get('telefono') || '').trim(),
-      'Mes: ' + String(data.get('mes') || ''),
-      'Asistentes: ' + people,
-      'Quiero coordinar la inscripción, confirmar el cupo y recibir los datos para transferir la seña de $10.000.'
-    ].join('\n');
+    const message = ended
+      ? [
+          'Hola Guille, quiero consultar por nuevas fechas y tarifas de cursos de SUP en A Remarla.',
+          'Vi el afiche de Cyber Week, pero sé que terminó el 4 de noviembre de 2026.',
+          'Modalidad de interés: ' + offer,
+          'Nombre: ' + String(data.get('nombre') || '').trim(),
+          'WhatsApp: ' + String(data.get('telefono') || '').trim(),
+          'Mes de interés: ' + String(data.get('mes') || ''),
+          'Asistentes: ' + people,
+          '¿Hay cupos y qué precio está vigente? Entiendo que los descuentos de Cyber Week y sus condiciones ya vencieron.'
+        ].join('\n')
+      : [
+          'Hola Guille, quiero solicitar una reserva para el Cyber Week de A Remarla.',
+          'Curso: SUP (4 clases de 1 hora y media)',
+          'Promoción: ' + offer,
+          'Nombre: ' + String(data.get('nombre') || '').trim(),
+          'WhatsApp: ' + String(data.get('telefono') || '').trim(),
+          'Mes: ' + String(data.get('mes') || ''),
+          'Asistentes: ' + people,
+          'Quiero coordinar la inscripción, confirmar el cupo y recibir los datos para transferir la seña de $10.000.'
+        ].join('\n');
     const url = 'https://wa.me/5493434461280?text=' + encodeURIComponent(message);
     window.location.href = url;
   });
 })();
 </script>
 <script defer src="../assets/cyberweek-share.js?v=20261105-cards1"></script>
-<script defer src="../assets/a-remarla-campanas.js?v=20261105-arroyo3"></script>
+<script defer src="../assets/a-remarla-campanas.js?v=20261106-form-fix1"></script>
 </body>
 </html>
 
