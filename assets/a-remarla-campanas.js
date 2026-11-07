@@ -9,12 +9,12 @@
   var pictureCyber = new URL('../assets/a-remarla-cybersup-redes-2026.jpg?v=20261105-images5', document.baseURI).href;
   var picturePena = new URL('../assets/a-remarla-pena-rio-nos-une-2026.jpg?v=20261105-images5', document.baseURI).href;
   var pictureArroyo = new URL('../assets/a-remarla-arroyo-las-conchas-2026.jpg?v=20261105-original1', document.baseURI).href;
-  var pictureSanta = new URL('../assets/a-remarla-isla-santa-candida-2026.jpg?v=20261106-photo-original', document.baseURI).href;
+  var pictureSanta = new URL('../assets/1000727311.jpg?v=20261106-photo-original', document.baseURI).href;
   var campaigns = [
     { id: 'cyberweek', title: 'Cyber Week · Curso SUP', type: 'Promoción', starts: '2026-11-02T00:00:00-03:00', expires: '2026-11-04T23:59:59-03:00', date: 'Del 2 al 4 de noviembre', visibleUntil: '2026-11-15T23:59:59-03:00', photo: pictureCyber, file: 'a-remarla-cybersup-redes-2026.jpg' },
     { id: 'pena-rio-nos-une', title: 'Peña · El Río Nos Une', type: 'Evento', starts: '2026-11-04T00:00:00-03:00', expires: '2026-11-13T23:59:59-03:00', date: 'Viernes 13 de noviembre · 19:00', photo: picturePena, file: 'a-remarla-pena-rio-nos-une-2026.jpg' },
     { id: 'arroyo-las-conchas', title: 'Paseo guiado · Arroyo Las Conchas', type: 'Evento', starts: '2026-11-05T00:00:00-03:00', expires: '2026-11-09T23:59:59-03:00', date: 'Lunes 9 de noviembre · 10:00 a 13:00', photo: pictureArroyo, file: 'a-remarla-arroyo-las-conchas-2026.jpg' },
-    { id: 'isla-santa-candida', title: 'Travesía en kayak · Isla Santa Cándida', type: 'Evento', starts: '2026-11-06T00:00:00-03:00', expires: '2026-11-08T23:59:59-03:00', date: 'Domingo 8 de noviembre · 14:00', photo: pictureSanta, file: 'a-remarla-isla-santa-candida-2026.jpg' }
+    { id: 'isla-santa-candida', title: 'Travesía en kayak · Isla Santa Cándida', type: 'Evento', starts: '2026-11-06T00:00:00-03:00', expires: '2026-11-08T23:59:59-03:00', date: 'Domingo 8 de noviembre · 14:00', photo: pictureSanta, file: '1000727311.jpg' }
   ];
   var now = function () { return Date.now(); };
   var active = function (item) { return now() >= Date.parse(item.starts) && now() <= Date.parse(item.expires); };
