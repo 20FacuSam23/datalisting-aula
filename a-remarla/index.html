@@ -539,7 +539,7 @@
       'Mes de interés: ' + String(data.get('mes') || ''),
       'Asistentes: ' + people,
       'Quiero consultar disponibilidad y coordinar la inscripción.'
-    ].join('\\n');
+    ].join('\n');
     const url = 'https://wa.me/5493434461280?text=' + encodeURIComponent(message);
     window.location.href = url;
   });
