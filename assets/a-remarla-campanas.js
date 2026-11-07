@@ -9,11 +9,12 @@
   var pictureCyber = new URL('../assets/a-remarla-cybersup-redes-2026.jpg?v=20261105-images5', document.baseURI).href;
   var picturePena = new URL('../assets/a-remarla-pena-rio-nos-une-2026.jpg?v=20261105-images5', document.baseURI).href;
   var pictureArroyo = new URL('../assets/a-remarla-arroyo-las-conchas-2026.jpg?v=20261105-original1', document.baseURI).href;
+  var pictureSanta = new URL('../assets/a-remarla-isla-santa-candida-2026.jpg?v=20261106-photo-original', document.baseURI).href;
   var campaigns = [
     { id: 'cyberweek', title: 'Cyber Week · Curso SUP', type: 'Promoción', starts: '2026-11-02T00:00:00-03:00', expires: '2026-11-04T23:59:59-03:00', date: 'Del 2 al 4 de noviembre', visibleUntil: '2026-11-15T23:59:59-03:00', photo: pictureCyber, file: 'a-remarla-cybersup-redes-2026.jpg' },
     { id: 'pena-rio-nos-une', title: 'Peña · El Río Nos Une', type: 'Evento', starts: '2026-11-04T00:00:00-03:00', expires: '2026-11-13T23:59:59-03:00', date: 'Viernes 13 de noviembre · 19:00', photo: picturePena, file: 'a-remarla-pena-rio-nos-une-2026.jpg' },
     { id: 'arroyo-las-conchas', title: 'Paseo guiado · Arroyo Las Conchas', type: 'Evento', starts: '2026-11-05T00:00:00-03:00', expires: '2026-11-09T23:59:59-03:00', date: 'Lunes 9 de noviembre · 10:00 a 13:00', photo: pictureArroyo, file: 'a-remarla-arroyo-las-conchas-2026.jpg' },
-    { id: 'isla-santa-candida', title: 'Travesía en kayak · Isla Santa Cándida', type: 'Evento', starts: '2026-11-06T00:00:00-03:00', expires: '2026-11-08T23:59:59-03:00', date: 'Domingo 8 de noviembre · 14:00', photo: null, file: null }
+    { id: 'isla-santa-candida', title: 'Travesía en kayak · Isla Santa Cándida', type: 'Evento', starts: '2026-11-06T00:00:00-03:00', expires: '2026-11-08T23:59:59-03:00', date: 'Domingo 8 de noviembre · 14:00', photo: pictureSanta, file: 'a-remarla-isla-santa-candida-2026.jpg' }
   ];
   var now = function () { return Date.now(); };
   var active = function (item) { return now() >= Date.parse(item.starts) && now() <= Date.parse(item.expires); };
@@ -235,9 +236,13 @@
     window.location.href = 'https://wa.me/5493434461280?text=' + encodeURIComponent(lines.filter(Boolean).join('\n'));
   });
   // Travesía en kayak del domingo: sin reutilizar el afiche de otro evento.
-  // Cuando se reciba el afiche original se incorpora como foto sin modificaciones.
+  // Mostrar el afiche original sin retoques, con ficha de respaldo si falta la foto.
   var travesiaHolder = el('div', 'cp-pena');
   var travesiaImageCol = el('div');
+  var travesiaImage = el('img');
+  travesiaImage.alt = 'Afiche original Isla Santa Cándida · A Remarla';
+  travesiaImage.loading = 'eager';
+  travesiaImage.style.display = 'none';
   var travesiaVisual = el('div', 'cp-image-pending');
   travesiaVisual.append(
     el('small', 'cp-pending-label', 'A REMARLA · TRAVESÍA EN KAYAK'),
@@ -267,10 +272,18 @@
   var travesiaShare = el('div', 'cp-share');
   travesiaShare.append(el('strong', '', 'Compartir la travesía'));
   var travesiaShareActions = el('div', 'cp-share-actions');
+  travesiaShareActions.append(button('Compartir imagen', function () {
+    if (!travesiaImage.naturalWidth) return announce(travesiaInfo, 'El afiche está pendiente de publicación.');
+    sharePicture(campaigns[3], travesiaInfo);
+  }));
   travesiaShareActions.append(button('Copiar enlace', function () { copyLink(campaigns[3], travesiaInfo); }));
   travesiaShare.append(travesiaShareActions);
   travesiaInfo.append(travesiaShare);
-  travesiaHolder.append(travesiaVisual, travesiaInfo);
+  travesiaImageCol.append(travesiaImage, travesiaVisual);
+  travesiaHolder.append(travesiaImageCol, travesiaInfo);
+  travesiaImage.addEventListener('load', function () { travesiaImage.style.display = ''; travesiaVisual.hidden = true; });
+  travesiaImage.addEventListener('error', function () { travesiaImage.style.display = 'none'; travesiaVisual.hidden = false; });
+  travesiaImage.src = pictureSanta;
   travesiaForm.addEventListener('submit', function (event) {
     event.preventDefault();
     if (!travesiaForm.reportValidity()) return;
@@ -432,7 +445,7 @@
     if (selected && selected.id === 'cyberweek') cyberHolder.append(previous);
     else if (selected && selected.id === 'pena-rio-nos-une') penaHolder.append(imageCol, infoCol);
     else if (selected && selected.id === 'arroyo-las-conchas') arroyoHolder.append(arroyoImageCol, arroyoInfo);
-    else if (selected && selected.id === 'isla-santa-candida') travesiaHolder.append(travesiaVisual, travesiaInfo);
+    else if (selected && selected.id === 'isla-santa-candida') travesiaHolder.append(travesiaImageCol, travesiaInfo);
     content.replaceChildren();
     selected = null;
     if (window.location.hash.startsWith('#campana-')) history.replaceState(null, '', site);
