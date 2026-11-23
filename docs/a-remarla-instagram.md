@@ -26,9 +26,23 @@ python3 scripts/sync_instagram.py --mode previous
 ya guardada. Así no importa el historial anterior ni pierde novedades publicadas
 después de la última revisión del día. `today` sigue disponible para una lectura
 limitada al día calendario de Argentina. `latest` y `previous` son modos de prueba.
-Se conserva todo lo ya incorporado y se evita duplicar por identificador. No hay
-retiro por antigüedad ni límites automáticos de 12 o 24 publicaciones. Las cuatro
-campañas originales permanecen primero; el login del Club y sus cuentas se conservan.
+Se conserva todo lo ya incorporado en el archivo y se evita duplicar por
+identificador. No hay límites automáticos de 12 o 24 publicaciones. El carrusel
+retira las promociones y actividades al pasar su fecha de cierre; las cuatro
+originales conservan su orden entre las que sigan vigentes. El login del Club
+y sus cuentas se conservan.
+
+`assets/a-remarla-vigencia.js` reconoce fechas claras del texto de Instagram:
+fechas con mes escrito, rangos, fechas numéricas con contexto y vencimientos
+explícitos (`expires_at`). El último día sigue incluido hasta las 23:59:59 de
+Argentina. Una fecha de cierre de inscripciones prevalece sobre la fecha de
+la actividad. Si falta el año, se usa la fecha de publicación como referencia;
+"hoy" y "hasta mañana" también se anclan a esa publicación, nunca a la visita.
+Si la fecha es ambigua o sólo está en la foto, no inventa un vencimiento.
+Las novedades sin cierre definido siguen visibles. No se borran fotos ni textos;
+un enlace guardado a una promoción vencida permite consultar nuevas fechas.
+La vigencia se revisa cada minuto, también sin cambios en el archivo o si falla
+su descarga. El mismo código del carrusel funciona al migrar a Hostinger.
 
 El workflow `Instagram de A Remarla` corre diariamente a las 09:17 y 21:17 de
 Argentina y admite ejecución manual. Antes de publicar ejecuta pruebas del
@@ -63,7 +77,7 @@ Si cambia la ubicación pública del portal, el sincronizador acepta `--output`,
 `instagramImageBaseUrl` dentro de su configuración existente. Usar rutas del
 mismo dominio y terminar la ruta base de las imágenes con `/`.
 
-Después de verificar imagen, texto, seis tarjetas iniciales, formulario,
+Después de verificar imagen, texto, tarjetas vigentes, formulario,
 WhatsApp y acceso al Club en el servidor real, crear el cron de Hostinger. La
 programación de hPanel usa UTC: minuto `17`, horas `0,12`, todos los días,
 equivalente a las 09:17 y 21:17 de Argentina. Para una sola lectura, usar hora

@@ -8,6 +8,8 @@ on:
       - scripts/sync_instagram_hostinger.php
       - scripts/publish_instagram.sh
       - tests/**
+      - assets/a-remarla-vigencia.js
+      - assets/a-remarla-campanas.js
       - .github/workflows/a-remarla-instagram.yml
   workflow_dispatch:
     inputs:
@@ -39,6 +41,7 @@ jobs:
       - name: Verificar el código y el guardado con cambios simultáneos
         run: |
           node --check assets/a-remarla-campanas.js
+          node --test tests/test_campaign_expiry.cjs
           python3 -m unittest discover -s tests -v
           php -l scripts/sync_instagram_hostinger.php
       - name: Probar la lectura PHP preparada para Hostinger

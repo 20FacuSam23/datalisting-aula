@@ -18,7 +18,8 @@
   ];
   var now = function () { return Date.now(); };
   var active = function (item) { return now() >= Date.parse(item.starts) && now() <= Date.parse(item.expires); };
-  var expired = function (item) { return item.source !== 'instagram' && now() > Date.parse(item.expires); };
+  var expired = function (item) { return Number.isFinite(Date.parse(item.expires)) && now() > Date.parse(item.expires); };
+  function currentCampaigns() { return campaigns.filter(function (item) { return !expired(item); }); }
   var site = new URL('./', window.location.href.split('#')[0]).href;
   var selected = null;
   var lastFocus = null;
@@ -370,6 +371,10 @@
     source.target = '_blank';
     source.rel = 'noopener noreferrer';
     info.append(source, el('h3', '', 'Inscripción y consultas'));
+    var expiryNotice = el('p', 'cp-expiry-note', 'Esta propuesta ya finalizó. Podés consultar por nuevas fechas y tarifas vigentes.');
+    expiryNotice.setAttribute('data-cp-expiry', '');
+    expiryNotice.hidden = !expired(item);
+    info.append(expiryNotice);
     var form = el('form', 'cp-instagram-form');
     function field(label, name, type, required) {
       var wrapper = el('label', 'cp-field', label);
@@ -401,7 +406,7 @@
       event.preventDefault();
       if (!form.reportValidity()) return;
       var data = new FormData(form);
-      var lines = ['Hola Guille, quiero solicitar información e inscripción en A Remarla.',
+      var lines = [expired(item) ? 'Hola Guille, esta propuesta finalizó y quiero consultar por nuevas fechas y tarifas vigentes.' : 'Hola Guille, quiero solicitar información e inscripción en A Remarla.',
         'Publicación: ' + item.title, 'Instagram: ' + item.sourceUrl,
         'Nombre: ' + String(data.get('nombre') || '').trim(),
         'WhatsApp: ' + String(data.get('telefono') || '').trim(),
@@ -461,14 +466,15 @@
           id: 'ig-' + post.id, source: 'instagram', kind: post.kind, type: 'Instagram',
           title: title, caption: post.caption, publishedAt: post.published_at,
           sourceUrl: post.source_url, photo: importedPhoto(post),
-          file: post.image.split('/').pop(), starts: post.published_at
+          file: post.image.split('/').pop(), starts: post.published_at,
+          expires: window.ARemarlaVigencia ? window.ARemarlaVigencia.expiry(post) : post.expires_at
         };
         campaigns.push(item);
         holders[item.id] = instagramHolder(item);
       });
-      // Add Instagram after the four existing cards; never hide those cards
-      // because of their booking dates or replace them with an imported feed.
-      ordered = campaigns.slice();
+      // Keep the original order among current campaigns, followed by Instagram.
+      // Expired offers stay in the archive but leave the public carousel.
+      ordered = currentCampaigns();
       render();
       var linked = campaigns.find(function (item) { return window.location.hash === '#campana-' + item.id; });
       if (linked) openModal(linked);
@@ -478,8 +484,15 @@
     }
   }
 
-  // La fecha de reserva no retira las campañas: el contenido se conserva hasta decidir su retiro.
-  var ordered = campaigns.slice();
+  var ordered = currentCampaigns();
+  function refreshExpiry() {
+    if (!overlay.hidden) return;
+    var current = currentCampaigns();
+    if (current.map(function (item) { return item.id; }).join(',') !== ordered.map(function (item) { return item.id; }).join(',')) {
+      ordered = current;
+      render();
+    }
+  }
   function updateDots() {
     Array.from(dots.children).forEach(function (dot, index) {
       dot.setAttribute('aria-current', String(index === currentSlide));
@@ -605,6 +618,12 @@
       Array.from(form.querySelectorAll('input,textarea,button[type=submit]')).forEach(function (input) { input.disabled = endedPena; });
       announce(infoCol, endedPena ? 'Este evento ya finalizó.' : '');
     }
+    if (item.source === 'instagram') {
+      var instagramNotice = content.querySelector('[data-cp-expiry]');
+      if (instagramNotice) instagramNotice.hidden = !expired(item);
+      var instagramSubmit = content.querySelector('button[type=submit]');
+      if (instagramSubmit) instagramSubmit.textContent = expired(item) ? 'Consultar nuevas fechas por WhatsApp' : 'Enviar solicitud por WhatsApp';
+    }
     if (window.location.hash !== '#campana-' + item.id) history.replaceState(null, '', '#campana-' + item.id);
     closeBtn.focus();
   }
@@ -618,6 +637,7 @@
     else if (selected && selected.id === 'isla-santa-candida') travesiaHolder.append(travesiaImageCol, travesiaInfo);
     content.replaceChildren();
     selected = null;
+    refreshExpiry();
     if (window.location.hash.startsWith('#campana-')) history.replaceState(null, '', site);
     if (lastFocus && typeof lastFocus.focus === 'function') lastFocus.focus();
   }
@@ -665,8 +685,11 @@
   render();
   document.documentElement.classList.add('cp-campaign-ready');
   loadInstagram();
-  // Read the GitHub feed, not Instagram, to show unattended updates on open pages.
-  setInterval(function () { if (!document.hidden) loadInstagram(); }, 60000);
+  // Expiry also runs when the feed has not changed or its request fails.
+  setInterval(function () {
+    if (!document.hidden) { refreshExpiry(); loadInstagram(); }
+  }, 60000);
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) refreshExpiry(); });
   var fragment = window.location.hash.slice(1);
   var linked = campaigns.find(function (item) { return fragment === 'campana-' + item.id; });
   if (linked) openModal(linked);
