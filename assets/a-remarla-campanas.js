@@ -303,13 +303,51 @@
   });
   var holders = { cyberweek: cyberHolder, 'pena-rio-nos-une': penaHolder, 'arroyo-las-conchas': arroyoHolder, 'isla-santa-candida': travesiaHolder };
 
+  function instagramImage(item) {
+    var frame = el('div', 'cp-media-frame');
+    var image = el('img');
+    image.alt = (item.kind === 'reel' ? 'Portada del reel: ' : 'Publicación: ') + item.title;
+    image.addEventListener('load', function () {
+      var visible = 1, top = 0;
+      try {
+        // Remove only solid black letterboxing from the viewport. The source
+        // file stays intact and photographs without black margins remain whole.
+        var canvas = document.createElement('canvas');
+        canvas.width = 96;
+        canvas.height = Math.max(1, Math.round(image.naturalHeight * 96 / image.naturalWidth));
+        var context = canvas.getContext('2d', { willReadFrequently: true });
+        context.drawImage(image, 0, 0, canvas.width, canvas.height);
+        var pixels = context.getImageData(0, 0, canvas.width, canvas.height).data;
+        function blackRow(y) {
+          var dark = 0;
+          for (var x = 0; x < canvas.width; x++) {
+            var p = (y * canvas.width + x) * 4;
+            if (pixels[p] < 18 && pixels[p + 1] < 18 && pixels[p + 2] < 18) dark++;
+          }
+          return dark >= canvas.width * .98;
+        }
+        var first = 0, last = canvas.height - 1;
+        var limit = Math.floor(canvas.height * .2);
+        while (first < limit && blackRow(first)) first++;
+        while (canvas.height - 1 - last < limit && blackRow(last)) last--;
+        if (first > 1 && last < canvas.height - 2 && !blackRow(first) && !blackRow(last)) {
+          top = first / canvas.height;
+          visible = (last - first + 1) / canvas.height;
+        }
+      } catch (error) { /* Keep the complete image when pixel inspection is unavailable. */ }
+      frame.style.setProperty('--cp-media-ratio', String(image.naturalWidth / image.naturalHeight / visible));
+      frame.style.setProperty('--cp-media-height', String(100 / visible) + '%');
+      frame.style.setProperty('--cp-media-top', String(-100 * top / visible) + '%');
+    });
+    image.src = item.photo;
+    frame.append(image);
+    return frame;
+  }
+
   function instagramHolder(item) {
     var holder = el('div', 'cp-pena cp-instagram');
     var visual = el('div');
-    var image = el('img');
-    image.src = item.photo;
-    image.alt = (item.kind === 'reel' ? 'Portada del reel: ' : 'Publicación: ') + item.title;
-    visual.append(image);
+    visual.append(instagramImage(item));
     var info = el('div');
     var published = new Date(item.publishedAt).toLocaleDateString('es-AR', {
       day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Argentina/Cordoba'
@@ -405,11 +443,9 @@
         campaigns.push(item);
         holders[item.id] = instagramHolder(item);
       });
-      ordered = campaigns.filter(function (item) { return item.source === 'instagram' || now() <= Date.parse(item.visibleUntil || item.expires); });
-      ordered.sort(function (a, b) {
-        if (a.source === 'instagram' && b.source === 'instagram') return Date.parse(b.publishedAt) - Date.parse(a.publishedAt);
-        return Number(b.source === 'instagram') - Number(a.source === 'instagram');
-      });
+      // Add Instagram after the four existing cards; never hide those cards
+      // because of their booking dates or replace them with an imported feed.
+      ordered = campaigns.slice();
       render();
       var linked = campaigns.find(function (item) { return window.location.hash === '#campana-' + item.id; });
       if (linked) openModal(linked);
@@ -424,8 +460,7 @@
   // La fecha de exhibición es independiente del vencimiento para reservar.
   // Primero los afiches originales disponibles (Cyber Week y Peña).
   // La cuarta campaña sin afiche muestra sus datos y no reemplaza imágenes originales.
-  var ordered = campaigns.filter(function (item) { return now() <= Date.parse(item.visibleUntil || item.expires); });
-  ordered.sort(function (a, b) { return Number(!!b.photo) - Number(!!a.photo); });
+  var ordered = campaigns.slice();
   function updateDots() {
     Array.from(dots.children).forEach(function (dot, index) {
       dot.setAttribute('aria-current', String(index === currentSlide));
@@ -453,11 +488,13 @@
     track.replaceChildren();
     dots.replaceChildren();
     ordered.forEach(function (item, index) {
-      var card = el('article', 'cp-card');
+      var card = el('article', 'cp-card' + (item.source === 'instagram' ? ' cp-instagram-card' : ''));
       var action = button('', function () { openModal(item); });
       action.setAttribute('aria-label', 'Abrir publicación completa de ' + item.title +
         (expired(item) ? ', finalizada' : ''));
-      if (item.photo) {
+      if (item.source === 'instagram') {
+        action.append(instagramImage(item));
+      } else if (item.photo) {
         var img = el('img');
         img.src = item.photo;
         img.alt = 'Afiche original: ' + item.title;
