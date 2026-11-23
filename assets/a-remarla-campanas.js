@@ -18,7 +18,7 @@
   ];
   var now = function () { return Date.now(); };
   var active = function (item) { return now() >= Date.parse(item.starts) && now() <= Date.parse(item.expires); };
-  var expired = function (item) { return now() > Date.parse(item.expires); };
+  var expired = function (item) { return item.source !== 'instagram' && now() > Date.parse(item.expires); };
   var site = new URL('./', window.location.href.split('#')[0]).href;
   var selected = null;
   var lastFocus = null;
@@ -303,6 +303,122 @@
   });
   var holders = { cyberweek: cyberHolder, 'pena-rio-nos-une': penaHolder, 'arroyo-las-conchas': arroyoHolder, 'isla-santa-candida': travesiaHolder };
 
+  function instagramHolder(item) {
+    var holder = el('div', 'cp-pena cp-instagram');
+    var visual = el('div');
+    var image = el('img');
+    image.src = item.photo;
+    image.alt = (item.kind === 'reel' ? 'Portada del reel: ' : 'Publicación: ') + item.title;
+    visual.append(image);
+    var info = el('div');
+    var published = new Date(item.publishedAt).toLocaleDateString('es-AR', {
+      day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Argentina/Cordoba'
+    });
+    info.append(el('span', 'cp-eyebrow', 'A REMARLA · INSTAGRAM'),
+      el('h2', '', item.title), el('p', 'cp-published', 'Publicado el ' + published),
+      el('p', 'cp-instagram-caption', item.caption));
+    var source = el('a', 'cp-instagram-source', 'Ver publicación en Instagram');
+    source.href = item.sourceUrl;
+    source.target = '_blank';
+    source.rel = 'noopener noreferrer';
+    info.append(source, el('h3', '', 'Inscripción y consultas'));
+    var form = el('form', 'cp-instagram-form');
+    function field(label, name, type, required) {
+      var wrapper = el('label', 'cp-field', label);
+      var input = el(type === 'textarea' ? 'textarea' : 'input');
+      input.name = name;
+      if (type !== 'textarea') input.type = type;
+      input.required = !!required;
+      input.maxLength = type === 'textarea' ? 800 : 100;
+      wrapper.append(input);
+      form.append(wrapper);
+      return input;
+    }
+    var nameInput = field('Nombre y apellido', 'nombre', 'text', true);
+    nameInput.autocomplete = 'name';
+    var phoneInput = field('Tu WhatsApp', 'telefono', 'tel', true);
+    phoneInput.autocomplete = 'tel';
+    phoneInput.maxLength = 25;
+    phoneInput.minLength = 6;
+    phoneInput.title = 'Ingresá tu número de WhatsApp con código de área.';
+    var peopleInput = field('Cantidad de personas', 'personas', 'number', true);
+    peopleInput.min = '1'; peopleInput.max = '30'; peopleInput.value = '1';
+    field('Fecha de interés (opcional)', 'fecha', 'date', false);
+    field('Consulta o actividad de interés (opcional)', 'consulta', 'textarea', false);
+    var submit = el('button', 'cp-submit', 'Enviar solicitud por WhatsApp');
+    submit.type = 'submit';
+    form.append(submit, el('p', 'cp-registration-note',
+      'La escuela confirma fechas, disponibilidad e inscripción por WhatsApp.'));
+    form.addEventListener('submit', function (event) {
+      event.preventDefault();
+      if (!form.reportValidity()) return;
+      var data = new FormData(form);
+      var lines = ['Hola Guille, quiero solicitar información e inscripción en A Remarla.',
+        'Publicación: ' + item.title, 'Instagram: ' + item.sourceUrl,
+        'Nombre: ' + String(data.get('nombre') || '').trim(),
+        'WhatsApp: ' + String(data.get('telefono') || '').trim(),
+        'Personas: ' + String(data.get('personas') || '1')];
+      if (data.get('fecha')) lines.push('Fecha de interés: ' + data.get('fecha'));
+      if (String(data.get('consulta') || '').trim()) lines.push('Consulta: ' + String(data.get('consulta')).trim());
+      window.location.href = 'https://wa.me/5493434461280?text=' + encodeURIComponent(lines.join('\n'));
+    });
+    var whatsapp = el('a', 'cp-whatsapp-link', 'Consultar directamente por WhatsApp');
+    whatsapp.href = 'https://wa.me/5493434461280?text=' + encodeURIComponent(
+      'Hola Guille, quiero consultar por las actividades de A Remarla relacionadas con esta publicación: ' + item.sourceUrl);
+    whatsapp.target = '_blank'; whatsapp.rel = 'noopener noreferrer';
+    info.append(form, whatsapp);
+    holder.append(visual, info);
+    return holder;
+  }
+
+  var instagramSignature = '';
+  async function loadInstagram() {
+    try {
+      var feedUrl = new URL('./data/instagram.json', document.baseURI);
+      feedUrl.searchParams.set('t', String(Math.floor(Date.now() / 60000)));
+      var response = await fetch(feedUrl.href, { cache: 'no-store', credentials: 'omit' });
+      if (!response.ok) throw new Error('Lectura de Instagram no disponible');
+      var feed = await response.json();
+      if (feed.account !== 'kayak_parana_club' || !Array.isArray(feed.posts)) return;
+      var posts = feed.posts.filter(function (post) {
+        return post && /^[A-Za-z0-9_-]{5,30}$/.test(post.id) &&
+          typeof post.caption === 'string' && post.caption.trim() && post.caption.length <= 10000 &&
+          /^https:\/\/www\.instagram\.com\/kayak_parana_club\/(p|reel)\/[A-Za-z0-9_-]+\/$/.test(post.source_url) &&
+          /^\.\.\/assets\/a-remarla-instagram\/[A-Za-z0-9_-]+\.(jpg|png|webp)$/.test(post.image) &&
+          Number.isFinite(Date.parse(post.published_at));
+      }).slice(0, 12);
+      var signature = JSON.stringify(posts);
+      if (signature === instagramSignature) return;
+      // Do not reset a form while somebody is filling it out.
+      if (!overlay.hidden) return;
+      instagramSignature = signature;
+      campaigns = campaigns.filter(function (item) { return item.source !== 'instagram'; });
+      posts.forEach(function (post) {
+        var title = post.caption.split('\n').find(function (line) { return line.trim(); }).trim();
+        if (title.length > 90) title = title.slice(0, 87) + '…';
+        var item = {
+          id: 'ig-' + post.id, source: 'instagram', kind: post.kind, type: 'Instagram',
+          title: title, caption: post.caption, publishedAt: post.published_at,
+          sourceUrl: post.source_url, photo: new URL(post.image, document.baseURI).href,
+          file: post.image.split('/').pop(), starts: post.published_at
+        };
+        campaigns.push(item);
+        holders[item.id] = instagramHolder(item);
+      });
+      ordered = campaigns.filter(function (item) { return item.source === 'instagram' || now() <= Date.parse(item.visibleUntil || item.expires); });
+      ordered.sort(function (a, b) {
+        if (a.source === 'instagram' && b.source === 'instagram') return Date.parse(b.publishedAt) - Date.parse(a.publishedAt);
+        return Number(b.source === 'instagram') - Number(a.source === 'instagram');
+      });
+      render();
+      var linked = campaigns.find(function (item) { return window.location.hash === '#campana-' + item.id; });
+      if (linked) openModal(linked);
+    } catch (error) {
+      // Retain the already rendered cards on a network or Instagram read failure.
+      console.warn('A Remarla: se conservan las publicaciones disponibles.');
+    }
+  }
+
   // Mantener las cuatro campañas; Cyber Week sigue visible hasta la fecha acordada.
   // Mostrar también eventos sin afiche y conservar Cyber Week hasta el 15/11.
   // La fecha de exhibición es independiente del vencimiento para reservar.
@@ -333,6 +449,7 @@
     }
   }
   function render() {
+    section.hidden = !ordered.length;
     track.replaceChildren();
     dots.replaceChildren();
     ordered.forEach(function (item, index) {
@@ -494,6 +611,9 @@
   }
   render();
   document.documentElement.classList.add('cp-campaign-ready');
+  loadInstagram();
+  // Read the GitHub feed, not Instagram, to show unattended updates on open pages.
+  setInterval(function () { if (!document.hidden) loadInstagram(); }, 60000);
   var fragment = window.location.hash.slice(1);
   var linked = campaigns.find(function (item) { return fragment === 'campana-' + item.id; });
   if (linked) openModal(linked);
