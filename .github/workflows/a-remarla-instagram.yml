@@ -2,20 +2,23 @@ name: Instagram de A Remarla
 
 on:
   push:
-    branches: [main]
+    branches: [main, codex/a-remarla-instagram-20261123]
     paths:
       - scripts/sync_instagram.py
+      - scripts/sync_instagram_hostinger.php
+      - scripts/publish_instagram.sh
+      - tests/**
       - .github/workflows/a-remarla-instagram.yml
   workflow_dispatch:
     inputs:
       mode:
         description: Publicaciones a incorporar
         type: choice
-        options: [today, latest, previous]
-        default: today
+        options: [new, today, latest, previous]
+        default: new
   schedule:
-    # Una lectura diaria, 09:17 de Argentina.
-    - cron: '17 12 * * *'
+    # Dos lecturas diarias: 09:17 y 21:17 de Argentina.
+    - cron: '17 0,12 * * *'
 
 permissions:
   contents: write
@@ -26,22 +29,34 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+      - name: Verificar el código y el guardado con cambios simultáneos
+        run: |
+          node --check assets/a-remarla-campanas.js
+          python3 -m unittest discover -s tests -v
+          php -l scripts/sync_instagram_hostinger.php
+      - name: Probar la lectura PHP preparada para Hostinger
+        run: php scripts/sync_instagram_hostinger.php --mode=previous --output="$RUNNER_TEMP/ar-instagram-check/feed.json" --image-dir="$RUNNER_TEMP/ar-instagram-check/images"
+
   importar:
+    if: github.ref == 'refs/heads/main'
+    needs: verificar
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v6
-      - name: Leer publicaciones públicas e imagen original
+        with:
+          ref: main
+      - name: Leer y guardar publicaciones desde la versión vigente
         env:
-          SYNC_MODE: ${{ github.event_name == 'push' && 'latest' || inputs.mode || 'today' }}
-        run: python3 scripts/sync_instagram.py --mode "$SYNC_MODE"
-      - name: Guardar las novedades en GitHub
-        run: |
-          git add a-remarla/data/instagram.json assets/a-remarla-instagram/
-          if git diff --cached --quiet; then exit 0; fi
-          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'Actualizar publicaciones de Instagram de A Remarla'
-          git pull --rebase origin main
-          git push origin HEAD:main
+          SYNC_MODE: ${{ inputs.mode || 'new' }}
+        run: bash scripts/publish_instagram.sh "$SYNC_MODE"
       - name: Actualizar GitHub Pages
         env:
           GH_TOKEN: ${{ github.token }}
@@ -56,15 +71,10 @@ jobs:
       - name: Esperar diez minutos desde la primera incorporación
         run: sleep 600
       - uses: actions/checkout@v6
-      - name: Leer e incorporar la publicación anterior desde Instagram
-        run: python3 scripts/sync_instagram.py --mode previous
-      - name: Guardar la segunda incorporación
-        run: |
-          git add a-remarla/data/instagram.json assets/a-remarla-instagram/
-          if git diff --cached --quiet; then exit 0; fi
-          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'Incorporar la publicación anterior de Instagram de A Remarla'
-          git pull --rebase origin main
-          git push origin HEAD:main
+        with:
+          ref: main
+      - name: Leer y guardar la anterior desde la versión vigente
+        run: bash scripts/publish_instagram.sh previous
       - name: Actualizar GitHub Pages
         env:
           GH_TOKEN: ${{ github.token }}

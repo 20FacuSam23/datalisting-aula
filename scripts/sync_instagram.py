@@ -6,11 +6,14 @@ Instagram stops returning public metadata; the last successful feed is retained.
 """
 
 import argparse
+import fcntl
+import hashlib
 from datetime import datetime, timezone
 import json
 from pathlib import Path
 import re
 import sys
+import tempfile
 from urllib.parse import urlparse
 from urllib.request import Request, urlopen
 from zoneinfo import ZoneInfo
@@ -98,20 +101,31 @@ def atomic_json(path, data):
     temporary.replace(path)
 
 
-def sync(mode):
-    existing = json.loads(FEED.read_text()) if FEED.exists() else {"posts": []}
+def select_posts(mode, posts, existing, now):
+    if mode == "previous":
+        if len(posts) < 2:
+            raise ValueError("No se encontró la publicación anterior")
+        return posts[1:2]
+    if mode == "latest":
+        return posts[:1]
+    if mode == "today":
+        return [p for p in posts if datetime.fromisoformat(p["published_at"]).astimezone(LOCAL_TZ).date() == now.astimezone(LOCAL_TZ).date()]
+    saved = existing.get("posts", [])
+    if not saved:
+        return posts[:1]
+    known = {p["id"] for p in saved}
+    newest = max(p["published_at"] for p in saved)
+    return [p for p in posts if p["id"] not in known and p["published_at"] >= newest]
+
+
+def sync(mode, output=FEED, image_dir=IMAGES, image_prefix="../assets/a-remarla-instagram/"):
+    output, image_dir = Path(output), Path(image_dir)
+    existing = json.loads(output.read_text()) if output.exists() else {"posts": []}
     posts = read_public_feed(download(PUBLIC_FEED).decode("utf-8"))
     if not posts:
         raise ValueError("Instagram no entregó ninguna publicación pública verificable")
     now = datetime.now(timezone.utc)
-    if mode == "previous":
-        if len(posts) < 2:
-            raise ValueError("No se encontró la publicación anterior")
-        selected = posts[1:2]
-    elif mode == "latest":
-        selected = posts[:1]
-    else:
-        selected = [p for p in posts if datetime.fromisoformat(p["published_at"]).astimezone(LOCAL_TZ).date() == now.astimezone(LOCAL_TZ).date()]
+    selected = select_posts(mode, posts, existing, now)
     imported = []
     for post in selected:
         body = download(post.pop("_image_url"), image=True)
@@ -123,12 +137,12 @@ def sync(mode):
             extension = ".webp"
         else:
             raise ValueError("La descarga no es una imagen válida")
-        IMAGES.mkdir(parents=True, exist_ok=True)
-        image_path = IMAGES / (post["id"] + extension)
+        image_dir.mkdir(parents=True, exist_ok=True)
+        image_path = image_dir / (post["id"] + extension)
         temporary = image_path.with_suffix(extension + ".tmp")
         temporary.write_bytes(body)
         temporary.replace(image_path)
-        post["image"] = "../assets/a-remarla-instagram/" + image_path.name
+        post["image"] = image_prefix.rstrip("/") + "/" + image_path.name
         post["imported_at"] = now.isoformat()
         imported.append(post)
     # Merge by immutable shortcode; keep all existing cards on read failures.
@@ -139,19 +153,26 @@ def sync(mode):
             post["imported_at"] = previous.get("imported_at", post["imported_at"])
         merged[post["id"]] = post
     result = {
+        **existing,
         "account": ACCOUNT, "checked_at": now.isoformat(), "mode": mode, "source": PUBLIC_FEED,
-        "posts": sorted(merged.values(), key=lambda p: p["published_at"], reverse=True)[:24],
+        "posts": sorted(merged.values(), key=lambda p: p["published_at"], reverse=True),
     }
-    atomic_json(FEED, result)
+    atomic_json(output, result)
     print(json.dumps({"mode": mode, "read_public_posts": len(posts), "imported": [p["id"] for p in imported], "total": len(result["posts"])}))
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--mode", choices=["today", "latest", "previous"], default="today")
+    parser.add_argument("--mode", choices=["new", "today", "latest", "previous"], default="new")
+    parser.add_argument("--output", type=Path, default=FEED)
+    parser.add_argument("--image-dir", type=Path, default=IMAGES)
+    parser.add_argument("--image-url-prefix", default="../assets/a-remarla-instagram/")
     args = parser.parse_args()
     try:
-        sync(args.mode)
+        identity = hashlib.sha256(str(args.output.resolve()).encode()).hexdigest()
+        with open(Path(tempfile.gettempdir()) / ("ar-instagram-" + identity + ".lock"), "a") as lock:
+            fcntl.flock(lock, fcntl.LOCK_EX)
+            sync(args.mode, args.output, args.image_dir, args.image_url_prefix)
     except Exception as error:
         print(f"No se actualizó el carrusel; se conserva la última lectura: {type(error).__name__}: {error}", file=sys.stderr)
         sys.exit(1)

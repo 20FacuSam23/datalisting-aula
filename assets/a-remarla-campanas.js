@@ -303,11 +303,13 @@
   });
   var holders = { cyberweek: cyberHolder, 'pena-rio-nos-une': penaHolder, 'arroyo-las-conchas': arroyoHolder, 'isla-santa-candida': travesiaHolder };
 
-  function instagramImage(item) {
+  function campaignImage(item, existingImage) {
     var frame = el('div', 'cp-media-frame');
-    var image = el('img');
-    image.alt = (item.kind === 'reel' ? 'Portada del reel: ' : 'Publicación: ') + item.title;
-    image.addEventListener('load', function () {
+    var image = existingImage || el('img');
+    image.alt = (item.source === 'instagram' ? (item.kind === 'reel' ? 'Portada del reel: ' : 'Publicación: ') : 'Afiche original: ') + item.title;
+    function fitImage() {
+      if (!image.naturalWidth || !image.naturalHeight) return;
+      frame.hidden = false;
       var visible = 1, top = 0;
       try {
         // Remove only solid black letterboxing from the viewport. The source
@@ -338,16 +340,24 @@
       frame.style.setProperty('--cp-media-ratio', String(image.naturalWidth / image.naturalHeight / visible));
       frame.style.setProperty('--cp-media-height', String(100 / visible) + '%');
       frame.style.setProperty('--cp-media-top', String(-100 * top / visible) + '%');
-    });
-    image.src = item.photo;
+    }
+    image.addEventListener('load', fitImage);
+    image.addEventListener('error', function () { frame.hidden = true; });
+    if (!existingImage) image.src = item.photo;
     frame.append(image);
+    if (image.complete) fitImage();
     return frame;
   }
+
+  // Keep the original images, form nodes and callbacks in the existing dialogs.
+  imageCol.replaceChildren(campaignImage(campaigns[1], penaImage));
+  arroyoImageCol.replaceChildren(campaignImage(campaigns[2], arroyoImage));
+  travesiaImageCol.replaceChildren(campaignImage(campaigns[3], travesiaImage), travesiaVisual);
 
   function instagramHolder(item) {
     var holder = el('div', 'cp-pena cp-instagram');
     var visual = el('div');
-    visual.append(instagramImage(item));
+    visual.append(campaignImage(item));
     var info = el('div');
     var published = new Date(item.publishedAt).toLocaleDateString('es-AR', {
       day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Argentina/Cordoba'
@@ -410,9 +420,22 @@
   }
 
   var instagramSignature = '';
+  var instagramConfig = window.DATALISTING_AULA_CONFIG || {};
+  var instagramImageBase = new URL(instagramConfig.instagramImageBaseUrl || '../assets/a-remarla-instagram/', document.baseURI);
+  function importedPhoto(post) {
+    if (typeof post.image !== 'string') return null;
+    try {
+      var url = new URL(post.image, document.baseURI);
+      if (url.origin !== location.origin || instagramImageBase.origin !== location.origin ||
+          !url.pathname.startsWith(instagramImageBase.pathname)) return null;
+      var filename = url.pathname.slice(instagramImageBase.pathname.length);
+      return /^[A-Za-z0-9_-]+\.(jpg|png|webp)$/.test(filename) ? url.href : null;
+    } catch (error) { return null; }
+  }
   async function loadInstagram() {
     try {
-      var feedUrl = new URL('./data/instagram.json', document.baseURI);
+      var feedUrl = new URL(instagramConfig.instagramFeedUrl || './data/instagram.json', document.baseURI);
+      if (feedUrl.origin !== location.origin) return;
       feedUrl.searchParams.set('t', String(Math.floor(Date.now() / 60000)));
       var response = await fetch(feedUrl.href, { cache: 'no-store', credentials: 'omit' });
       if (!response.ok) throw new Error('Lectura de Instagram no disponible');
@@ -422,9 +445,9 @@
         return post && /^[A-Za-z0-9_-]{5,30}$/.test(post.id) &&
           typeof post.caption === 'string' && post.caption.trim() && post.caption.length <= 10000 &&
           /^https:\/\/www\.instagram\.com\/kayak_parana_club\/(p|reel)\/[A-Za-z0-9_-]+\/$/.test(post.source_url) &&
-          /^\.\.\/assets\/a-remarla-instagram\/[A-Za-z0-9_-]+\.(jpg|png|webp)$/.test(post.image) &&
+          importedPhoto(post) &&
           Number.isFinite(Date.parse(post.published_at));
-      }).slice(0, 12);
+      });
       var signature = JSON.stringify(posts);
       if (signature === instagramSignature) return;
       // Do not reset a form while somebody is filling it out.
@@ -437,7 +460,7 @@
         var item = {
           id: 'ig-' + post.id, source: 'instagram', kind: post.kind, type: 'Instagram',
           title: title, caption: post.caption, publishedAt: post.published_at,
-          sourceUrl: post.source_url, photo: new URL(post.image, document.baseURI).href,
+          sourceUrl: post.source_url, photo: importedPhoto(post),
           file: post.image.split('/').pop(), starts: post.published_at
         };
         campaigns.push(item);
@@ -455,11 +478,7 @@
     }
   }
 
-  // Mantener las cuatro campañas; Cyber Week sigue visible hasta la fecha acordada.
-  // Mostrar también eventos sin afiche y conservar Cyber Week hasta el 15/11.
-  // La fecha de exhibición es independiente del vencimiento para reservar.
-  // Primero los afiches originales disponibles (Cyber Week y Peña).
-  // La cuarta campaña sin afiche muestra sus datos y no reemplaza imágenes originales.
+  // La fecha de reserva no retira las campañas: el contenido se conserva hasta decidir su retiro.
   var ordered = campaigns.slice();
   function updateDots() {
     Array.from(dots.children).forEach(function (dot, index) {
@@ -492,12 +511,9 @@
       var action = button('', function () { openModal(item); });
       action.setAttribute('aria-label', 'Abrir publicación completa de ' + item.title +
         (expired(item) ? ', finalizada' : ''));
-      if (item.source === 'instagram') {
-        action.append(instagramImage(item));
-      } else if (item.photo) {
-        var img = el('img');
-        img.src = item.photo;
-        img.alt = 'Afiche original: ' + item.title;
+      if (item.photo) {
+        var frame = campaignImage(item);
+        var img = frame.querySelector('img');
         img.loading = index === 0 ? 'eager' : 'lazy';
         if (item.id === 'isla-santa-candida') {
           img.addEventListener('error', function () {
@@ -512,7 +528,7 @@
             action.replaceChildren(fallback);
           });
         }
-        action.append(img);
+        action.append(frame);
       } else {
         // No reemplazar los afiches entregados por Guille con una foto inventada.
         // Hasta recibir el afiche original, mostrar la tercera campaña con sus datos reales.
