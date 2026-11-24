@@ -237,6 +237,7 @@
   #cyberweek-sup #cyberweek-share .cw-share-actions button{font-size:.77rem;padding:10px 5px}
 }
 </style><link rel="stylesheet" href="../assets/a-remarla-campanas.css?v=20261123-instagram3">
+  <link rel="stylesheet" href="../assets/a-remarla-sponsors.css?v=20261124-1">
 </head>
 <body>
   <div class="privacy-shield" id="privacyShield" aria-hidden="true">
@@ -255,6 +256,7 @@
     </a>
     <nav aria-label="Navegación principal"><button class="nav" data-view="administracion" data-manager-only hidden>Administrar aula</button>
       <button class="nav active" data-view="inicio">La escuela</button><button class="nav" data-view="rio">El río y el lugar</button><button class="nav" data-view="comunidad">Nuestra comunidad</button>
+      <a class="nav" href="sponsors/" style="text-decoration:none">Sponsors</a>
       <button class="nav" data-view="cursos">Mis cursos</button>
       <button class="nav" data-view="ayuda">Ayuda</button>
       <button class="nav" data-view="meteorologia" data-nautical-only hidden>Meteorología</button>
@@ -364,6 +366,12 @@
 
         <div class="visual-stage river-visual"><div class="river-contours" aria-hidden="true">≈</div><span class="river-kicker">EL RÍO NOS ENCUENTRA</span><h2>Un lugar.<br>Muchas formas<br>de vivirlo.</h2><div class="river-quick"><button data-view="rio">Explorar el lugar ↗</button><button data-view="meteorologia">Consultar el clima ↗</button></div><article class="portal-next" hidden><h2 id="nextCourseTitle"></h2><p id="nextCourseDescription"></p><button id="continueCourse" disabled>Abrir curso</button></article></div>
       </div>
+    </section>
+
+
+    <section class="section view ar-sponsor-callout" data-section="inicio" aria-labelledby="ar-sponsors-title">
+      <div class="ar-sponsor-layout"><div><span class="ar-sponsor-kicker">MARCAS QUE SE SUMAN AL RÍO</span><h2 id="ar-sponsors-title">Tu marca.<br><span>Nuestra corriente.</span></h2><p>Un espacio para acompañar a la comunidad de A Remarla. Descubrí propuestas para tu negocio en la web, las actividades y las redes.</p><a class="ar-sponsor-button" href="sponsors/">Conocé los espacios para sponsors</a></div><div class="ar-sponsor-visual" aria-label="Muestra de espacio para una marca"><div><small>ESPACIO PARA SPONSORS · MUESTRA</small>Tu marca<br>puede estar acá.</div><p>Web · Actividades · Historias</p></div></div>
+      <div class="sp-partner-grid" data-sp-partners data-sp-placement="home" data-sp-data="data/sponsors.json"></div>
     </section>
 
 <section class="section view" data-section="inicio"><div class="section-head"><div><span class="eyebrow">ANTES DE ENCONTRARNOS</span><h2>El lugar y las condiciones.</h2></div><button class="link" data-view="rio">Explorar mapa y radar →</button></div><div class="welcome-grid"><article class="welcome-map"><iframe title="Ubicación de A Remarla en Paraná" loading="lazy" src="https://www.openstreetmap.org/export/embed.html?bbox=-60.5165116%2C-31.7203690%2C-60.4985116%2C-31.7083690&amp;layer=mapnik&amp;marker=-31.7143690%2C-60.5075116"></iframe><p>A Remarla · Paraná<br><small>-31.7143690, -60.5075116</small><br><a href="https://www.google.com/maps/dir/?api=1&amp;destination=-31.7143690%2C-60.5075116" target="_blank" rel="noopener">Cómo llegar ↗</a></p></article><article class="public-wx"><span class="eyebrow">PRONÓSTICO DEL ENTORNO</span><h3>Prepará tu encuentro con el río.</h3><div id="welcomeWeather">Consultando condiciones previstas…</div><button class="primary" data-view="meteorologia">Ver pronóstico por hora →</button><p>No representa una medición en la costa. Confirmá las condiciones con la escuela.</p></article></div></section><section class="section view" data-section="inicio"><div class="section-head"><div><span class="eyebrow">NUESTRA COMUNIDAD</span><h2>Momentos de A Remarla.</h2><p>Conocé la escuela a través de sus publicaciones.</p></div><button class="link" data-view="comunidad">Recorrer publicaciones →</button></div><div class="welcome-social"><iframe title="Publicaciones de la escuela A Remarla" src="https://www.instagram.com/kayak_parana_club/embed/" loading="lazy"></iframe><div><h3>Hay un río por descubrir.<br>Y una comunidad para compartirlo.</h3><p>Consultá las novedades, las actividades y los encuentros en el perfil de la escuela.</p><a class="primary" href="https://www.instagram.com/kayak_parana_club/" target="_blank" rel="noopener">Ver fotos y novedades ↗</a><p class="embed-note">Si Instagram no muestra las fotos aquí, abrí el perfil.</p></div></div></section>
@@ -550,6 +558,8 @@
 <script defer src="../assets/cyberweek-share.js?v=20261105-cards1"></script>
 <script defer src="../assets/a-remarla-vigencia.js?v=20261123-vigencia1"></script>
 <script defer src="../assets/a-remarla-campanas.js?v=20261123-vigencia1"></script>
+  <script defer src="../assets/a-remarla-sponsors-core.js?v=20261124-1"></script>
+  <script defer src="../assets/a-remarla-sponsors.js?v=20261124-1"></script>
 </body>
 </html>
 
